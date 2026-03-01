@@ -15,16 +15,14 @@ RUN npm ci
 # ==========================================
 FROM node:20-alpine AS builder
 WORKDIR /app
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Next.js telemetry is disabled during the build
 ENV NEXT_TELEMETRY_DISABLED 1
-
-# CRITICAL: NEXT_PUBLIC_* env vars are baked at BUILD TIME, not runtime.
-# Pass via: docker build --build-arg NEXT_PUBLIC_API_URL=https://api.f1.yourdomain.com
-ARG NEXT_PUBLIC_API_URL=http://localhost:8000
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Generate standalone build (Requires output: 'standalone' in next.config.ts)
 RUN npm run build
@@ -37,6 +35,8 @@ WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

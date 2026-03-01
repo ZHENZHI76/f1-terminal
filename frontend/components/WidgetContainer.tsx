@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTerminalStore, Widget } from '@/store/terminalStore';
-import { API_BASE_URL } from '@/lib/constants';
 import { X, RefreshCw } from 'lucide-react';
 import TelemetryChart from './TelemetryChart';
 import TrackMapChart from './TrackMapChart';
@@ -97,7 +96,7 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                 throw new Error(`Widget type ${widget.type} logic missing.`);
             }
 
-            const fetchUrl = isPost ? `${API_BASE_URL}${endpoint}` : `${API_BASE_URL}${queryUrl}`;
+            const fetchUrl = isPost ? `http://localhost:8000${endpoint}` : `http://localhost:8000${queryUrl}`;
 
             const fetchInit: RequestInit = isPost
                 ? {

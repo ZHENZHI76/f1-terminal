@@ -19,15 +19,11 @@ fastf1.Cache.enable_cache(CACHE_DIR)
 
 app = FastAPI(title="F1 Terminal API", description="High-performance backend for F1 Bloomberg Terminal")
 
-# Configure CORS for frontend access (dev + production)
-CORS_ORIGINS = os.environ.get(
-    "CORS_ORIGINS",
-    "http://localhost:3000,http://127.0.0.1:3000"
-).split(",")
-
+# Configure CORS for frontend access
+# Allow wildcard for Reverse Proxy deployments (Loopback port binding already provides OS-level network security)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

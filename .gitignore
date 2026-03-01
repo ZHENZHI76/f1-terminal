@@ -17,11 +17,6 @@ backend/env/
 backend/.env
 backend/.env.test
 
-# Root-level Production Secrets (NEVER push real domains/keys to GitHub)
-.env
-.env.production
-.env.local
-.env.*.local
 # Hardcore F1 Caching (DO NOT PUSH THIS OR GITHUB WILL BE MAD)
 backend/f1_cache/
 
