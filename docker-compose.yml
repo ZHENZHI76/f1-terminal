@@ -8,7 +8,7 @@ services:
     container_name: f1-terminal-backend
     restart: always
     ports:
-      - "8000:8000"
+      - "127.0.0.1:38000:8000"
     volumes:
       # CRITICAL: Maps the internal f1_cache to the host machine.
       # This prevents the FIA APIs from throttling us or re-downloading 
@@ -24,7 +24,7 @@ services:
     container_name: f1-terminal-frontend
     restart: always
     ports:
-      - "3000:3000"
+      - "127.0.0.1:35000:3000"
     environment:
       # Points to the external public IP/Domain of your server.
       # Do not use 'localhost' if deploying to an Ubuntu cloud instance.

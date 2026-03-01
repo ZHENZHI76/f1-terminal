@@ -91,8 +91,26 @@ graph TD
 ### 1. Requirements
 Ensure you have **Node.js 20+** and **Python 3.10+** (or Docker).
 
-### 2. Zero-Config Run (Docker)
-*(Coming Soon in v1.1 via `docker-compose up -d`)*
+### 2. Production Deployment (Docker + 1Panel)
+
+F1 Terminal is strictly designed for **Localhost Port Binding** to prevent unauthorized bare-IP API scraping. 
+
+1. **Configure Environment:**
+   Edit `.env.production` and point the `NEXT_PUBLIC_API_URL` to your future backend subdomain (e.g., `https://api.f1.yourdomain.com/api/v1`).
+2. **Build and Spin Up:**
+   ```bash
+   docker-compose --env-file .env.production up -d --build
+   ```
+   *Note: Ports `35000` (Frontend) and `38000` (Backend) are bound locally and cannot be accessed from the public internet.*
+3. **1Panel / Nginx Reverse Proxy Setup:**
+   Head to your 1Panel Dashboard -> **Websites** -> **Create Website** -> **Reverse Proxy**:
+   - **Frontend Proxy**: 
+     - Domain: `f1.yourdomain.com`
+     - Proxy Host: `http://127.0.0.1:35000`
+   - **Backend API Proxy**: 
+     - Domain: `api.f1.yourdomain.com`
+     - Proxy Host: `http://127.0.0.1:38000`
+   - **Security**: Navigate to the **HTTPS** tab for both sites, request a Let's Encrypt certificate, and toggle **Force HTTPS**.
 
 ### 3. Local Monorepo Startup
 Spin up the Quant Engine Backend:
