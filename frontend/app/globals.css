@@ -22,18 +22,154 @@
 
 /* Override react-grid-layout default colors to match Bloomberg dark terminal aesthetic */
 .react-grid-item {
-  background: #111111;
-  /* Extremely dark gray panel */
-  border: 1px solid #333333;
-  border-radius: 4px;
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 2px;
+  transition: box-shadow 0.15s ease;
+}
+
+.react-grid-item:hover {
+  border-color: #333;
 }
 
 .react-grid-item.react-grid-placeholder {
   background: var(--color-neon-ferrari-red);
-  opacity: 0.2;
+  opacity: 0.15;
+  border: 1px dashed var(--color-neon-ferrari-red);
+  border-radius: 2px;
 }
 
+/* ========================================
+   Bloomberg-style Multi-Directional Resize Handles
+   ======================================== */
+
+/* Base: hide default react-resizable icon */
 .react-resizable-handle {
-  filter: invert(1);
-  /* Invert the drag handle color to be visible on dark bg */
+  filter: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+/* Show handles only on panel hover */
+.react-grid-item:hover .react-resizable-handle {
+  opacity: 1;
+}
+
+/* Corner handles (8x8 squares) */
+.react-resizable-handle-se,
+.react-resizable-handle-sw,
+.react-resizable-handle-ne,
+.react-resizable-handle-nw {
+  width: 10px;
+  height: 10px;
+  background: transparent;
+}
+
+.react-resizable-handle-se:hover,
+.react-resizable-handle-sw:hover,
+.react-resizable-handle-ne:hover,
+.react-resizable-handle-nw:hover {
+  background: rgba(255, 40, 0, 0.4);
+}
+
+/* Edge handles (full edge strips) */
+.react-resizable-handle-n,
+.react-resizable-handle-s {
+  width: 100%;
+  height: 6px;
+  left: 0;
+  cursor: ns-resize;
+  background: transparent;
+}
+
+.react-resizable-handle-n {
+  top: -3px;
+}
+
+.react-resizable-handle-s {
+  bottom: -3px;
+}
+
+.react-resizable-handle-e,
+.react-resizable-handle-w {
+  height: 100%;
+  width: 6px;
+  top: 0;
+  cursor: ew-resize;
+  background: transparent;
+}
+
+.react-resizable-handle-e {
+  right: -3px;
+}
+
+.react-resizable-handle-w {
+  left: -3px;
+}
+
+/* Hover feedback on edges */
+.react-resizable-handle-n:hover,
+.react-resizable-handle-s:hover {
+  background: linear-gradient(to bottom, rgba(255, 40, 0, 0.3), transparent);
+}
+
+.react-resizable-handle-e:hover,
+.react-resizable-handle-w:hover {
+  background: linear-gradient(to right, rgba(255, 40, 0, 0.3), transparent);
+}
+
+/* Remove the default :: after triangle arrow indicator */
+.react-resizable-handle::after {
+  display: none !important;
+}
+
+/* Corner cursors */
+.react-resizable-handle-se {
+  cursor: nwse-resize;
+}
+
+.react-resizable-handle-sw {
+  cursor: nesw-resize;
+}
+
+.react-resizable-handle-ne {
+  cursor: nesw-resize;
+}
+
+.react-resizable-handle-nw {
+  cursor: nwse-resize;
+}
+
+/* Active drag state: glow effect on panel border */
+.react-grid-item.resizing {
+  border-color: var(--color-neon-ferrari-red);
+  box-shadow: 0 0 12px rgba(255, 40, 0, 0.15);
+}
+
+.react-grid-item.react-draggable-dragging {
+  border-color: var(--color-neon-mercedes-silver);
+  box-shadow: 0 0 15px rgba(0, 210, 190, 0.15);
+  z-index: 999;
+}
+
+/* ========================================
+   Scrollbar Styling (Bloomberg Dark)
+   ======================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }

@@ -43,7 +43,7 @@ export default function TerminalCLI() {
             if (cmd === "TEL" || cmd === "PACE" || cmd === "TELEMETRY") {
                 // EX: TEL 2024 BAH Q VER PER
                 const args = parts.slice(1);
-                addWidget('TEL', args, { x: 0, y: 0, w: 8, h: 10, minW: 4, minH: 5 }, viewMode);
+                addWidget('TEL', args, { x: 0, y: 0, w: 10, h: 14, minW: 6, minH: 8 }, viewMode);
             }
             else if (cmd === "MAP" && parts[1] === "SPD") {
                 // EX: MAP SPD 2024 BAH Q VER
@@ -65,7 +65,7 @@ export default function TerminalCLI() {
             }
             else if (cmd === "INSIGHT") {
                 const args = parts.slice(1);
-                addWidget('INSIGHT', args, { x: 8, y: 10, w: 4, h: 20, minW: 3, minH: 5 }, viewMode);
+                addWidget('INSIGHT', args, { x: 0, y: 0, w: 6, h: 16, minW: 4, minH: 8 }, viewMode);
             }
             else if (cmd === "WEATHER") {
                 const args = parts.slice(1);

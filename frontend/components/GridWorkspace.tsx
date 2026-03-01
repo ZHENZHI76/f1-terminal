@@ -32,7 +32,13 @@ export default function GridWorkspace() {
     };
 
     return (
-        <div id="grid-workspace-container" className="w-full h-full p-2 bg-[#050505] overflow-auto">
+        <div id="grid-workspace-container" className="w-full h-full p-2 overflow-auto"
+            style={{
+                backgroundColor: '#050505',
+                backgroundImage: 'radial-gradient(circle, #1a1a1a 1px, transparent 1px)',
+                backgroundSize: '24px 24px'
+            }}
+        >
             {/* 
         Container for react-grid-layout setup.
         We handle width manually via ResizeObserver loop.
@@ -56,6 +62,9 @@ export default function GridWorkspace() {
                 draggableHandle=".drag-handle"
                 isDraggable={!isMobile}
                 isResizable={!isMobile}
+                compactType={null}
+                preventCollision={false}
+                resizeHandles={['s', 'w', 'e', 'n', 'sw', 'nw', 'se', 'ne']}
                 margin={[8, 8]}
             >
                 {widgets.map(widget => (
