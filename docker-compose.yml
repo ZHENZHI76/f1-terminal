@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: f1-terminal-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      # CRITICAL: Maps the internal f1_cache to the host machine.
+      # This prevents the FIA APIs from throttling us or re-downloading 
+      # tens of Gigabytes of raw telemetry on every container restart.
+      - ./backend/f1_cache:/app/f1_cache
+    networks:
+      - f1-net
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: f1-terminal-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # Points to the external public IP/Domain of your server.
+      # Do not use 'localhost' if deploying to an Ubuntu cloud instance.
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}/api/v1
+    depends_on:
+      - backend
+    networks:
+      - f1-net
+
+networks:
+  f1-net:
+    driver: bridge

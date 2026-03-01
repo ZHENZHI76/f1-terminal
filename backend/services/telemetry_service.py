@@ -36,7 +36,7 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
         if lap_a.empty:
             raise ValueError(f"Could not find valid fastest lap for {driver_a} in {year} {grand_prix}")
 
-        cols = ['Time', 'Distance', 'Speed', 'Throttle', 'Brake', 'nGear']
+        cols = ['Time', 'Distance', 'Speed', 'Throttle', 'Brake', 'nGear', 'RPM', 'DRS']
 
         if not driver_b:
             # 单车手 Baseline 模式 (无插值、无Delta计算)
@@ -47,9 +47,11 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
             baseline_df = pl.DataFrame({
                 "D": df_a.get_column("Distance").to_numpy(),
                 "A_Spd": df_a.get_column("Speed").to_numpy(),
+                "A_RPM": df_a.get_column("RPM").to_numpy(),
                 "A_Thr": df_a.get_column("Throttle").to_numpy(),
                 "A_Brk": df_a.get_column("Brake").to_numpy(),
-                "A_Gear": df_a.get_column("nGear").to_numpy()
+                "A_Gear": df_a.get_column("nGear").to_numpy(),
+                "A_DRS": df_a.get_column("DRS").to_numpy()
             }).fill_nan(0).fill_null(0)
             
             return baseline_df.to_dicts()
@@ -59,9 +61,9 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
         if lap_b.empty:
             raise ValueError(f"Could not find valid fastest lap for {driver_b} in {year} {grand_prix}")
         
-        # 提取包含 Time, Distance, Speed, Throttle, Brake, nGear 的遥测数据
+        # 提取包含 Time, Distance, Speed, Throttle, Brake, nGear, RPM, DRS 的遥测数据
         # 必须显式 .copy() 防止 Pandas 切片拷贝警告 (SettingWithCopyWarning) 导致数据篡改
-        cols = ['Time', 'Distance', 'Speed', 'Throttle', 'Brake', 'nGear']
+        cols = ['Time', 'Distance', 'Speed', 'Throttle', 'Brake', 'nGear', 'RPM', 'DRS']
         tel_a = lap_a.get_telemetry()[cols].copy()
         tel_b = lap_b.get_telemetry()[cols].copy()
         
@@ -93,29 +95,37 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
         dist_a_uq = dist_a[uq_idx_a]
         time_a_uq = df_a.get_column("Time").to_numpy()[uq_idx_a]
         speed_a_uq = df_a.get_column("Speed").to_numpy()[uq_idx_a]
+        rpm_a_uq = df_a.get_column("RPM").to_numpy()[uq_idx_a]
         throttle_a_uq = df_a.get_column("Throttle").to_numpy()[uq_idx_a]
         brake_a_uq = df_a.get_column("Brake").to_numpy()[uq_idx_a]
         gear_a_uq = df_a.get_column("nGear").to_numpy()[uq_idx_a]
+        drs_a_uq = df_a.get_column("DRS").to_numpy()[uq_idx_a]
         
         dist_b_uq = dist_b[uq_idx_b]
         time_b_uq = df_b.get_column("Time").to_numpy()[uq_idx_b]
         speed_b_uq = df_b.get_column("Speed").to_numpy()[uq_idx_b]
+        rpm_b_uq = df_b.get_column("RPM").to_numpy()[uq_idx_b]
         throttle_b_uq = df_b.get_column("Throttle").to_numpy()[uq_idx_b]
         brake_b_uq = df_b.get_column("Brake").to_numpy()[uq_idx_b]
         gear_b_uq = df_b.get_column("nGear").to_numpy()[uq_idx_b]
+        drs_b_uq = df_b.get_column("DRS").to_numpy()[uq_idx_b]
         
         # 2. SciPy 一维插值
         interp_a_time = interp1d(dist_a_uq, time_a_uq, kind='linear', bounds_error=False, fill_value="extrapolate")
         interp_a_speed = interp1d(dist_a_uq, speed_a_uq, kind='linear', bounds_error=False, fill_value="extrapolate")
+        interp_a_rpm = interp1d(dist_a_uq, rpm_a_uq, kind='linear', bounds_error=False, fill_value="extrapolate")
         interp_a_thr = interp1d(dist_a_uq, throttle_a_uq, kind='linear', bounds_error=False, fill_value="extrapolate")
         interp_a_brk = interp1d(dist_a_uq, brake_a_uq, kind='nearest', bounds_error=False, fill_value="extrapolate")
         interp_a_gear = interp1d(dist_a_uq, gear_a_uq, kind='nearest', bounds_error=False, fill_value="extrapolate")
+        interp_a_drs = interp1d(dist_a_uq, drs_a_uq, kind='nearest', bounds_error=False, fill_value="extrapolate")
         
         interp_b_time = interp1d(dist_b_uq, time_b_uq, kind='linear', bounds_error=False, fill_value="extrapolate")
         interp_b_speed = interp1d(dist_b_uq, speed_b_uq, kind='linear', bounds_error=False, fill_value="extrapolate")
+        interp_b_rpm = interp1d(dist_b_uq, rpm_b_uq, kind='linear', bounds_error=False, fill_value="extrapolate")
         interp_b_thr = interp1d(dist_b_uq, throttle_b_uq, kind='linear', bounds_error=False, fill_value="extrapolate")
         interp_b_brk = interp1d(dist_b_uq, brake_b_uq, kind='nearest', bounds_error=False, fill_value="extrapolate")
         interp_b_gear = interp1d(dist_b_uq, gear_b_uq, kind='nearest', bounds_error=False, fill_value="extrapolate")
+        interp_b_drs = interp1d(dist_b_uq, drs_b_uq, kind='nearest', bounds_error=False, fill_value="extrapolate")
         
         time_a_aligned = interp_a_time(ref_distance)
         time_b_aligned = interp_b_time(ref_distance)
@@ -128,12 +138,16 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
             "D": ref_distance,
             "A_Spd": interp_a_speed(ref_distance),
             "B_Spd": interp_b_speed(ref_distance),
+            "A_RPM": interp_a_rpm(ref_distance),
+            "B_RPM": interp_b_rpm(ref_distance),
             "A_Thr": interp_a_thr(ref_distance),
             "B_Thr": interp_b_thr(ref_distance),
             "A_Brk": interp_a_brk(ref_distance),
             "B_Brk": interp_b_brk(ref_distance),
             "A_Gear": interp_a_gear(ref_distance),
             "B_Gear": interp_b_gear(ref_distance),
+            "A_DRS": interp_a_drs(ref_distance),
+            "B_DRS": interp_b_drs(ref_distance),
             "Delta": delta_time,
         })
         
