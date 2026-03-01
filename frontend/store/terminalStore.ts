@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type WidgetType = 'TEL' | 'MAP_SPD' | 'MAP_GEAR' | 'STRAT' | 'STINT' | 'GG' | 'DOM' | 'INSIGHT';
+export type WidgetType = 'TEL' | 'MAP_SPD' | 'MAP_GEAR' | 'STRAT' | 'STINT' | 'GG' | 'DOM' | 'INSIGHT' | 'WEATHER' | 'MSG';
 
 export interface WidgetLayout {
     i: string;
@@ -17,11 +17,12 @@ export interface Widget {
     type: WidgetType;   // Determines the component to render
     params: string[];   // Raw parameters parsed from CLI 
     layout: WidgetLayout;
+    viewMode?: 'chart' | 'raw'; // Used to polymorphic dispatch to DataGridWidget
 }
 
 interface TerminalState {
     widgets: Widget[];
-    addWidget: (type: WidgetType, params: string[], defaultLayout: Omit<WidgetLayout, 'i'>) => void;
+    addWidget: (type: WidgetType, params: string[], defaultLayout: Omit<WidgetLayout, 'i'>, viewMode?: 'chart' | 'raw') => void;
     removeWidget: (id: string) => void;
     updateLayout: (newLayout: WidgetLayout[]) => void;
     clearAll: () => void;
@@ -30,13 +31,14 @@ interface TerminalState {
 export const useTerminalStore = create<TerminalState>((set) => ({
     widgets: [],
 
-    addWidget: (type, params, defaultLayout) => set((state) => {
+    addWidget: (type, params, defaultLayout, viewMode) => set((state) => {
         const id = `${type}-${Date.now()}`; // Generate unique collision-free ID
         const newWidget: Widget = {
             id,
             type,
             params,
-            layout: { ...defaultLayout, i: id }
+            layout: { ...defaultLayout, i: id },
+            viewMode
         };
         return { widgets: [...state.widgets, newWidget] };
     }),

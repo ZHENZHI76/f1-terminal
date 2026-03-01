@@ -50,7 +50,7 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
                 "A_Thr": df_a.get_column("Throttle").to_numpy(),
                 "A_Brk": df_a.get_column("Brake").to_numpy(),
                 "A_Gear": df_a.get_column("nGear").to_numpy()
-            }).drop_nulls().fill_nan(None)
+            }).fill_nan(0).fill_null(0)
             
             return baseline_df.to_dicts()
 
@@ -60,9 +60,10 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
             raise ValueError(f"Could not find valid fastest lap for {driver_b} in {year} {grand_prix}")
         
         # 提取包含 Time, Distance, Speed, Throttle, Brake, nGear 的遥测数据
+        # 必须显式 .copy() 防止 Pandas 切片拷贝警告 (SettingWithCopyWarning) 导致数据篡改
         cols = ['Time', 'Distance', 'Speed', 'Throttle', 'Brake', 'nGear']
-        tel_a = lap_a.get_telemetry()[cols]
-        tel_b = lap_b.get_telemetry()[cols]
+        tel_a = lap_a.get_telemetry()[cols].copy()
+        tel_b = lap_b.get_telemetry()[cols].copy()
         
         # 将 Time (timedelta) 转换为秒 (float)，解决 Polars 类型不兼容和后续数学运算问题
         tel_a['Time'] = tel_a['Time'].dt.total_seconds()
@@ -136,8 +137,9 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
             "Delta": delta_time,
         })
         
-        # FastF1/Polars 在 JSON 序列化时不支持 NaN，故需处理为 None (在此强制 drop_nulls 保障纯净数据)
-        aligned_df = aligned_df.drop_nulls().fill_nan(None)
+        # FastF1/Polars 在 JSON 序列化时不支持 NaN
+        # 必须先用 0 或前序值填充插值产生的外插范围 (extrapolate boundaries)，防止生成 JavaScript Null 导致 ECharts 折线断裂
+        aligned_df = aligned_df.fill_nan(0).fill_null(0)
         
         logger.info(f"Successfully extracted Polars DataFrame. Shape: ({aligned_df.height} rows, {aligned_df.width} columns)")
         logger.info(f"Interpolation & Quant Alignment complete for {driver_a} vs {driver_b}.")

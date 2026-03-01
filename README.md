@@ -38,17 +38,27 @@ F1 Terminal is built for data engineers, race strategists, and hardcore quant an
 
 ---
 
+## Technical Features
+
+* **Universal Data Lake (`-r` modifier)**: Bypasses charts to render arbitrary JSON outputs (Weather, Race Control, Telemetry Vectors) into a high-density Bloomberg-style Terminal Grid.
+* **Global Macro Ticker**: A React component locked to the DOM root, running a synchronized 1000ms polling loop against FastF1's UTC event schedules, displaying live track temperature feeds.
+* **Kinematic G-Force Engine**: Extrapolates 3D physical coordinate arrays into Longitudinal, Lateral, and Vertical G-Forces using 1st and 2nd derivatives of velocity and rotational matrices.
+
+---
+
 ## CLI Command Matrix
 
 Our Terminal is driven by syntax. Enter these top-level instructions into the command prompt:
 
 | Command Syntax | Parameters | Vector Description | Visual Widget |
 | :--- | :--- | :--- | :--- |
-| `TEL` | `<YR> <GP> <SESS> <DRV1> [DRV2]` | **High-Frequency Telemetry Comparison**. Plots Speed, Throttle, Brake, nGear, and $\Delta T$ differences mapped to distance. | 5-Grid Linked Canvas |
+| `TEL` | `<YR> <GP> <SESS> <DRV1> [DRV2]` | **High-Frequency Telemetry Comparison**. Plots Speed, Throttle, Brake, nGear, and $\Delta T$ differences mapped to distance. Computes 3D G-Forces. *(Supports `-r / --raw`)* | 5-Grid Linked Canvas / DataGrid |
 | `MAP SPD` | `<YR> <GP> <SESS> <DRV>` | **Geospatial Speed Map**. GPS projection of the driver's fastest lap. Color-mapped to cornering apex thresholds. | Gradient Scatter Heatmap |
 | `MAP GEAR` | `<YR> <GP> <SESS> <DRV>` | **Geospatial Gear Map**. GPS projection indicating strict transmission gear utilization curves. | Piecewise Segments |
 | `STINT` | `<YR> <GP> <SESS> <DRV>` | **Pace / Degradation Modeling**. Discards Out/In/SC laps and applies Linear Regression to predict compounding tyre slope decay. | Time Series Scatter |
 | `DOM` | `<YR> <GP> <SESS> <DRV1> <DRV2>` | **Mini-Sector Dominance**. Dynamically splits track spans into 25 partitions, calculating local average speed superiority vector mapping. | Binary Scatter Map |
+| `WEATHER`| `<YR> <GP> <SESS>` | **Meteorology Logs**. Outputs chronological track-temp, air-temp, and humidity vectors. *(Native Raw)* | DataGrid JSON Table |
+| `MSG` | `<YR> <GP> <SESS>` | **FIA Race Control**. Extracts raw marshal sector flags, penalties, and track status deltas. *(Native Raw)* | DataGrid JSON Table |
 | `INSIGHT` | `<YR> <GP> <SESS> <DRV1> <DRV2>` | **AI Strategy Desk**. Binds extracted dimensions into JSON and feeds DeepSeek V3 to output a synthesized hedge-fund-style race document. | LLM Markdown Terminal |
 
 ---

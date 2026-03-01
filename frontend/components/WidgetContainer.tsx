@@ -7,6 +7,7 @@ import TelemetryChart from './TelemetryChart';
 import TrackMapChart from './TrackMapChart';
 import StintAnalysisChart from './StintAnalysisChart';
 import DominanceMapChart from './DominanceMapChart';
+import DataGridWidget from './DataGridWidget';
 
 export default function WidgetContainer({ widget }: { widget: Widget }) {
     const removeWidget = useTerminalStore((state) => state.removeWidget);
@@ -22,13 +23,30 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
             // We dispatch based on Widget Type mappings
             let endpoint = '';
             let payload = {};
+            let isPost = true;
+            let queryUrl = '';
 
-            if (widget.type === 'TEL') {
+            if (widget.viewMode === 'raw') {
+                isPost = false;
+                let dataset = 'telemetry';
+                if (widget.type === 'WEATHER') dataset = 'weather';
+                else if (widget.type === 'MSG') dataset = 'messages';
+
+                const year = widget.params[0];
+                const prix = widget.params[1];
+                const session = widget.params[2];
+                let driverQuery = '';
+                if (widget.params[3] && widget.type !== 'WEATHER' && widget.type !== 'MSG') {
+                    driverQuery = `&driver=${widget.params[3]}`;
+                }
+
+                queryUrl = `/api/v1/data/${dataset}?year=${year}&prix=${prix}&session=${session}${driverQuery}`;
+            } else if (widget.type === 'TEL') {
                 endpoint = '/api/v1/telemetry/compare';
                 payload = {
                     year: parseInt(widget.params[0]),
-                    grand_prix: widget.params[1],
-                    session_type: widget.params[2],
+                    prix: widget.params[1],
+                    session: widget.params[2],
                     driver_a: widget.params[3],
                     driver_b: widget.params[4]
                 };
@@ -36,32 +54,32 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                 endpoint = '/api/v1/track-map/speed';
                 payload = {
                     year: parseInt(widget.params[0]),
-                    grand_prix: widget.params[1],
-                    session_type: widget.params[2],
+                    prix: widget.params[1],
+                    session: widget.params[2],
                     driver: widget.params[3]
                 };
             } else if (widget.type === 'STINT') {
                 endpoint = '/api/v1/strategy/stints';
                 payload = {
                     year: parseInt(widget.params[0]),
-                    grand_prix: widget.params[1],
-                    session_type: widget.params[2],
-                    driver: widget.params[3]
+                    prix: widget.params[1],
+                    session: widget.params[2],
+                    driver_a: widget.params[3]
                 };
             } else if (widget.type === 'MAP_GEAR') {
                 endpoint = '/api/v1/track-map/gear';
                 payload = {
                     year: parseInt(widget.params[0]),
-                    grand_prix: widget.params[1],
-                    session_type: widget.params[2],
+                    prix: widget.params[1],
+                    session: widget.params[2],
                     driver: widget.params[3]
                 };
             } else if (widget.type === 'DOM') {
                 endpoint = '/api/v1/dominance/map';
                 payload = {
                     year: parseInt(widget.params[0]),
-                    grand_prix: widget.params[1],
-                    session_type: widget.params[2],
+                    prix: widget.params[1],
+                    session: widget.params[2],
                     driver_a: widget.params[3],
                     driver_b: widget.params[4]
                 };
@@ -69,8 +87,8 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                 endpoint = '/api/v1/insight/generate';
                 payload = {
                     year: parseInt(widget.params[0]),
-                    grand_prix: widget.params[1],
-                    session_type: widget.params[2],
+                    prix: widget.params[1],
+                    session: widget.params[2],
                     driver_a: widget.params[3],
                     driver_b: widget.params[4]
                 };
@@ -78,11 +96,19 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                 throw new Error(`Widget type ${widget.type} logic missing.`);
             }
 
-            const response = await fetch(`http://localhost:8000${endpoint}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
+            const fetchUrl = isPost ? `http://localhost:8000${endpoint}` : `http://localhost:8000${queryUrl}`;
+
+            const fetchInit: RequestInit = isPost
+                ? {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                }
+                : {
+                    method: "GET"
+                };
+
+            const response = await fetch(fetchUrl, fetchInit);
 
             if (!response.ok) {
                 const errData = await response.json();
@@ -136,6 +162,10 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
             );
         }
 
+        if (widget.viewMode === 'raw') {
+            return <DataGridWidget data={data} />;
+        }
+
         switch (widget.type) {
             case 'TEL':
                 return <TelemetryChart data={data} driverA={widget.params[3]} driverB={widget.params[4]} />;
@@ -167,7 +197,9 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
         'MAP_GEAR': 'Gear Map',
         'STINT': 'Pace / Deg',
         'DOM': 'Micro-Sector Dom',
-        'INSIGHT': 'AI Insight'
+        'INSIGHT': 'AI Insight',
+        'WEATHER': 'Weather Logs',
+        'MSG': 'Race Control'
     };
 
     return (

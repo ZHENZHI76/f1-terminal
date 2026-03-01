@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import TickerBar from "@/components/TickerBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,9 +26,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#050505] overflow-hidden`}
       >
-        {children}
+        <TickerBar />
+        <div className="mt-8 h-[calc(100vh-2rem)] w-full overflow-hidden">
+          {children}
+        </div>
       </body>
     </html>
   );

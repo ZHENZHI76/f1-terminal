@@ -3,21 +3,21 @@ import ReactECharts from 'echarts-for-react';
 
 export interface TelemetryDataPoint {
     D: number;
-    Delta: number;
+    Delta?: number;
     A_Spd: number;
-    B_Spd: number;
+    B_Spd?: number;
     A_Thr: number;
-    B_Thr: number;
+    B_Thr?: number;
     A_Brk: number;
-    B_Brk: number;
+    B_Brk?: number;
     A_Gear: number;
-    B_Gear: number;
+    B_Gear?: number;
 }
 
 interface TelemetryChartProps {
     data: TelemetryDataPoint[];
     driverA: string;
-    driverB: string;
+    driverB?: string;
     colorA?: string;
     colorB?: string;
 }
@@ -27,25 +27,28 @@ export default function TelemetryChart({ data, driverA, driverB, colorA = '#ff28
     const option = useMemo(() => {
         if (!data || data.length === 0) return {};
 
-        console.log("[TelemetryChart] Raw data received. Length:", data.length);
-        if (data.length > 0) {
-            console.log("[TelemetryChart] Sample Data Point 0:", data[0]);
-        }
-
-        const distances = data.map(d => d.D);
-        const speedA = data.map(d => d.A_Spd);
-        const throttleA = data.map(d => d.A_Thr);
-        const brakeA = data.map(d => d.A_Brk);
-        const gearA = data.map(d => d.A_Gear);
-
         // Check for Baseline single-driver mode vs Compare mode
-        const isSingleDriver = data[0] && data[0].Delta === undefined;
+        const isSingleDriver = !driverB || data[0]?.Delta === undefined;
 
-        const speedB = isSingleDriver ? [] : data.map(d => d.B_Spd);
-        const throttleB = isSingleDriver ? [] : data.map(d => d.B_Thr);
-        const brakeB = isSingleDriver ? [] : data.map(d => d.B_Brk);
-        const gearB = isSingleDriver ? [] : data.map(d => d.B_Gear);
-        const deltaT = isSingleDriver ? [] : data.map(d => d.Delta);
+        // Map data to explicit 2D coordinate tuples for native LTTB downsampling
+        const speedA = data.map(d => [d.D, d.A_Spd]);
+        const throttleA = data.map(d => [d.D, d.A_Thr]);
+        const brakeA = data.map(d => [d.D, d.A_Brk]);
+        const gearA = data.map(d => [d.D, d.A_Gear]);
+
+        const speedB = isSingleDriver ? [] : data.map(d => [d.D, d.B_Spd]);
+        const throttleB = isSingleDriver ? [] : data.map(d => [d.D, d.B_Thr]);
+        const brakeB = isSingleDriver ? [] : data.map(d => [d.D, d.B_Brk]);
+        const gearB = isSingleDriver ? [] : data.map(d => [d.D, d.B_Gear]);
+        const deltaT = isSingleDriver ? [] : data.map(d => [d.D, d.Delta]);
+
+        const xAxisCommon = {
+            type: 'value', // Extremely critical: D is a continuous distance vector, not categorical
+            min: 'dataMin',
+            max: 'dataMax',
+            axisLine: { lineStyle: { color: '#333' } },
+            splitLine: { show: true, lineStyle: { color: '#1a1a1a' } }
+        };
 
         return {
             backgroundColor: 'transparent',
@@ -62,10 +65,12 @@ export default function TelemetryChart({ data, driverA, driverB, colorA = '#ff28
             dataZoom: [
                 { type: 'inside', xAxisIndex: isSingleDriver ? [0, 1, 2, 3] : [0, 1, 2, 3, 4] },
             ],
+            // Removed `dataset` because ECharts `sampling: 'lttb'` crashes on JSON object encode mapping.
             visualMap: isSingleDriver ? undefined : {
                 type: 'piecewise',
                 show: false,
                 seriesIndex: 0,
+                dimension: 'Delta', // Bind visual rules to the Delta Time dimension
                 pieces: [
                     { min: 0, color: colorB }, // If Delta > 0, A is slower (A falls behind B), so B color is on top
                     { max: 0, color: colorA }  // If Delta < 0, A is faster (A pulls ahead), show A color on bottom
@@ -84,16 +89,16 @@ export default function TelemetryChart({ data, driverA, driverB, colorA = '#ff28
                 { left: '6%', right: '4%', top: '85%', height: '8%' }   // Gear
             ],
             xAxis: isSingleDriver ? [
-                { type: 'category', data: distances, gridIndex: 0, axisLine: { lineStyle: { color: '#333' } }, axisLabel: { show: false }, splitLine: { show: true, lineStyle: { color: '#1a1a1a' } } },
-                { type: 'category', data: distances, gridIndex: 1, axisLine: { lineStyle: { color: '#333' } }, axisLabel: { show: false }, splitLine: { show: true, lineStyle: { color: '#1a1a1a' } } },
-                { type: 'category', data: distances, gridIndex: 2, axisLine: { lineStyle: { color: '#333' } }, axisLabel: { show: false }, splitLine: { show: true, lineStyle: { color: '#1a1a1a' } } },
-                { type: 'category', data: distances, gridIndex: 3, axisLine: { lineStyle: { color: '#333' } }, axisLabel: { color: '#888', fontFamily: 'monospace', fontSize: 10 }, splitLine: { show: true, lineStyle: { color: '#1a1a1a' } } }
+                { ...xAxisCommon, gridIndex: 0, axisLabel: { show: false } },
+                { ...xAxisCommon, gridIndex: 1, axisLabel: { show: false } },
+                { ...xAxisCommon, gridIndex: 2, axisLabel: { show: false } },
+                { ...xAxisCommon, gridIndex: 3, axisLabel: { color: '#888', fontFamily: 'monospace', fontSize: 10 } }
             ] : [
-                { type: 'category', data: distances, gridIndex: 0, axisLine: { lineStyle: { color: '#333' } }, axisLabel: { show: false }, splitLine: { show: true, lineStyle: { color: '#1a1a1a' } } },
-                { type: 'category', data: distances, gridIndex: 1, axisLine: { lineStyle: { color: '#333' } }, axisLabel: { show: false }, splitLine: { show: true, lineStyle: { color: '#1a1a1a' } } },
-                { type: 'category', data: distances, gridIndex: 2, axisLine: { lineStyle: { color: '#333' } }, axisLabel: { show: false }, splitLine: { show: true, lineStyle: { color: '#1a1a1a' } } },
-                { type: 'category', data: distances, gridIndex: 3, axisLine: { lineStyle: { color: '#333' } }, axisLabel: { show: false }, splitLine: { show: true, lineStyle: { color: '#1a1a1a' } } },
-                { type: 'category', data: distances, gridIndex: 4, axisLine: { lineStyle: { color: '#333' } }, axisLabel: { color: '#888', fontFamily: 'monospace', fontSize: 10 }, splitLine: { show: true, lineStyle: { color: '#1a1a1a' } } }
+                { ...xAxisCommon, gridIndex: 0, axisLabel: { show: false } },
+                { ...xAxisCommon, gridIndex: 1, axisLabel: { show: false } },
+                { ...xAxisCommon, gridIndex: 2, axisLabel: { show: false } },
+                { ...xAxisCommon, gridIndex: 3, axisLabel: { show: false } },
+                { ...xAxisCommon, gridIndex: 4, axisLabel: { color: '#888', fontFamily: 'monospace', fontSize: 10 } }
             ],
             yAxis: isSingleDriver ? [
                 { type: 'value', gridIndex: 0, name: 'KM/H', nameLocation: 'middle', nameGap: 30, nameTextStyle: { color: '#555', fontFamily: 'monospace', fontSize: 10 }, axisLabel: { color: '#888', fontSize: 10 }, splitLine: { show: true, lineStyle: { color: '#1a1a1a' } }, min: 'dataMin' },
@@ -107,6 +112,7 @@ export default function TelemetryChart({ data, driverA, driverB, colorA = '#ff28
                 { type: 'value', gridIndex: 3, name: 'BRK', nameLocation: 'middle', nameGap: 30, nameTextStyle: { color: '#555', fontFamily: 'monospace', fontSize: 10 }, axisLabel: { show: false }, splitLine: { show: true, lineStyle: { color: '#1a1a1a' } }, max: 1, min: 0 },
                 { type: 'value', gridIndex: 4, name: 'GEAR', nameLocation: 'middle', nameGap: 30, nameTextStyle: { color: '#555', fontFamily: 'monospace', fontSize: 10 }, axisLabel: { color: '#888', fontSize: 10 }, splitLine: { show: true, lineStyle: { color: '#1a1a1a' } }, max: 8, min: 0, interval: 2 }
             ],
+            // 3. Explicitly pass mapped 2D coordinate arrays
             series: isSingleDriver ? [
                 { name: `${driverA} Speed`, type: 'line', xAxisIndex: 0, yAxisIndex: 0, data: speedA, showSymbol: false, sampling: 'lttb', lineStyle: { color: colorA, width: 2 }, itemStyle: { color: colorA } },
                 { name: `${driverA} Throttle`, type: 'line', xAxisIndex: 1, yAxisIndex: 1, data: throttleA, showSymbol: false, sampling: 'lttb', lineStyle: { color: colorA, width: 1 }, areaStyle: { color: colorA, opacity: 0.1 }, itemStyle: { color: colorA } },
@@ -135,10 +141,11 @@ export default function TelemetryChart({ data, driverA, driverB, colorA = '#ff28
         };
     }, [data, driverA, driverB, colorA, colorB]);
 
+    // 1. 强力防御空对象渲染
     if (!data || data.length === 0) {
         return (
-            <div className="w-full h-full flex items-center justify-center text-gray-600 font-mono text-xs">
-                &lt; NO TELEMETRY DATA &gt;
+            <div className="w-full h-full flex items-center justify-center text-[#ff2800] bg-[#1a0505] border border-dashed border-[#ff2800] font-mono text-xs uppercase font-bold tracking-widest">
+                [!] NO TELEMETRY DATA OR INVALID PAYLOAD
             </div>
         );
     }

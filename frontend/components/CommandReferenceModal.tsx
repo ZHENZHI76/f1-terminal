@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { COMMAND_REGISTRY } from '@/config/commands';
 
 interface CommandReferenceModalProps {
     isOpen: boolean;
@@ -22,43 +23,12 @@ export default function CommandReferenceModal({ isOpen, onClose, onFillCommand }
 
     if (!mounted || !isOpen) return null;
 
-    const commands = [
-        {
-            cmd: "TEL <YEAR> <GP> <SESS> <DRV_A> [DRV_B]",
-            desc: "High-frequency telemetry comparison. Displays Speed, Throttle, Brake, Gear, and Delta Time.",
-            example: "TEL 2024 BAH Q VER LEC"
-        },
-        {
-            cmd: "MAP SPD <YEAR> <GP> <SESS> <DRV>",
-            desc: "Geospatial Track Speed Map. Plots the driver's fastest lap GPS coordinates with speed gradient.",
-            example: "MAP SPD 2024 BAH Q VER"
-        },
-        {
-            cmd: "MAP GEAR <YEAR> <GP> <SESS> <DRV>",
-            desc: "Geospatial Track Gear Map. Plots GPS coordinates overlaid with transmission geartracking.",
-            example: "MAP GEAR 2024 BAH Q VER"
-        },
-        {
-            cmd: "STINT <YEAR> <GP> <SESS> <DRV>",
-            desc: "Quant long-run pace & tyre degradation using linear regression lap filtering.",
-            example: "STINT 2024 BAH R VER"
-        },
-        {
-            cmd: "DOM <YEAR> <GP> <SESS> <DRV_A> <DRV_B>",
-            desc: "Mini-Sector Dominance Map. Maps track to 25 chunks to measure localized aerodynamic/power setup superiority.",
-            example: "DOM 2024 BAH Q VER LEC"
-        },
-        {
-            cmd: "INSIGHT <YEAR> <GP> <SESS> <DRV_A> <DRV_B>",
-            desc: "DeepSeek V3 LLM Automated Strategy Insight generation based on telemetry variance.",
-            example: "INSIGHT 2024 BAH Q VER LEC"
-        }
-    ];
-
     const handleQuickFill = (example: string) => {
         onFillCommand(example);
         onClose();
     };
+
+    const categories = Array.from(new Set(COMMAND_REGISTRY.map(c => c.category)));
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-sm">
@@ -91,22 +61,36 @@ export default function CommandReferenceModal({ isOpen, onClose, onFillCommand }
                         <div className="col-span-3">Execution</div>
                     </div>
 
-                    <div className="space-y-4 md:space-y-0">
-                        {commands.map((c, i) => (
-                            <div key={i} className="md:grid md:grid-cols-12 md:gap-4 md:py-4 border-b border-[#222] pb-4 md:pb-0 items-start hover:bg-[#1a1a1a] transition-colors rounded md:px-2">
-                                <div className="col-span-3 text-[#00ff00] text-xs font-bold mb-1 md:mb-0 break-words">
-                                    {c.cmd}
-                                </div>
-                                <div className="col-span-6 text-xs text-[#888] mb-3 md:mb-0 pr-4">
-                                    {c.desc}
-                                </div>
-                                <div className="col-span-3">
-                                    <button
-                                        onClick={() => handleQuickFill(c.example)}
-                                        className="w-full text-left bg-[#222] hover:bg-[#333] border border-[#444] hover:border-neon-mclaren-papaya text-[#ccc] hover:text-neon-mclaren-papaya px-3 py-2 text-xs transition-colors rounded whitespace-nowrap overflow-hidden text-ellipsis"
-                                    >
-                                        &gt; {c.example}
-                                    </button>
+                    <div className="space-y-6 md:space-y-8">
+                        {categories.map((cat, idx) => (
+                            <div key={idx} className="bg-[#0a0a0a] border border-[#222] p-4 rounded-sm">
+                                <h3 className="text-neon-williams-blue font-bold tracking-widest uppercase mb-4 text-xs border-b border-[#333] pb-2">
+                                    // {cat}
+                                </h3>
+                                <div className="space-y-3">
+                                    {COMMAND_REGISTRY.filter(c => c.category === cat).map((c, i) => (
+                                        <div key={i} className="md:grid md:grid-cols-12 md:gap-4 items-start hover:bg-[#151515] p-2 transition-colors duration-150 border-l-2 border-transparent hover:border-neon-mclaren-papaya">
+                                            <div className="col-span-3 mb-1 md:mb-0 break-words flex flex-col">
+                                                <span className="text-[#00ff41] text-xs font-bold leading-tight">{c.command} {c.args.join(" ")}</span>
+                                                {c.supportsRaw && (
+                                                    <span className="text-[10px] text-neon-aston-green mt-1 bg-[#111] w-max px-1 border border-[#222]">[-R / --RAW] SUPPORTED</span>
+                                                )}
+                                            </div>
+                                            <div className="col-span-6 text-xs text-[#888] mb-3 md:mb-0 pr-4 leading-relaxed">
+                                                {c.description}
+                                            </div>
+                                            <div className="col-span-3">
+                                                <button
+                                                    onClick={() => handleQuickFill(c.example)}
+                                                    className="w-full text-left bg-[#111] hover:bg-[#222] border border-[#333] hover:border-neon-mclaren-papaya text-[#ccc] hover:text-white px-3 py-2 transition-all rounded-sm text-[11px] font-bold tracking-wide flex justify-between items-center group shadow-sm"
+                                                    title="Click to auto-fill into terminal"
+                                                >
+                                                    <span className="truncate mr-2">&gt; {c.example}</span>
+                                                    <span className="opacity-0 group-hover:opacity-100 text-neon-mclaren-papaya transition-opacity">EXEC</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         ))}

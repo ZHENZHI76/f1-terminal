@@ -3,8 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 import fastf1
 import os
 
-from api.routes import router as telemetry_router
-
+from api import (
+    telemetry_routes,
+    strategy_routes,
+    insight_routes,
+    track_map_routes,
+    dominance_routes,
+    macro_routes,
+    universal_data_routes
+)
 # Initialize cache path for FastF1
 CACHE_DIR = os.path.join(os.path.dirname(__file__), "f1_cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
@@ -21,8 +28,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Connect Telemetry routes
-app.include_router(telemetry_router)
+# Connect Telemetry and Quant routes with /api/v1 prefix
+app.include_router(telemetry_routes.router, prefix="/api/v1", tags=["telemetry"])
+app.include_router(strategy_routes.router, prefix="/api/v1", tags=["strategy"])
+app.include_router(insight_routes.router, prefix="/api/v1", tags=["insight"])
+app.include_router(track_map_routes.router, prefix="/api/v1", tags=["track-map"])
+app.include_router(dominance_routes.router, prefix="/api/v1", tags=["dominance"])
+app.include_router(macro_routes.router, prefix="/api/v1", tags=["macro"])
+app.include_router(universal_data_routes.router, prefix="/api/v1", tags=["data-gateway"])
 
 @app.get("/")
 def read_root():
