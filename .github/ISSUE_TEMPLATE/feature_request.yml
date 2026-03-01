@@ -1,0 +1,38 @@
+name: Quant Feature Request
+description: Propose a new dashboard widget, command, or mathematical telemetry model
+title: "[FEATURE] "
+labels: ["enhancement", "math-model"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please provide the financial/racing engineering quantitative justification for this request.
+  - type: textarea
+    id: context
+    attributes:
+      label: Racing / Strategy Context
+      description: What F1 engineering problem does this solve? (e.g., Tyre Degradation, Straight-Line Speed mapping, Downforce setup estimation)
+    validations:
+      required: true
+  - type: textarea
+    id: math
+    attributes:
+      label: Quantitative Basis & Formulas
+      description: If you are requesting a new metric (e.g., Lateral Gs), provide the mathematical formula to be executed against the FastF1 `telemetry` DataFrame.
+    validations:
+      required: true
+  - type: input
+    id: visual
+    attributes:
+      label: Proposed Visual Mapping (ECharts)
+      description: What kind of chart does this require? (e.g., Scatter, Heatmap, Gantt)
+    validations:
+      required: false
+  - type: input
+    id: command
+    attributes:
+      label: Proposed CLI Command
+      description: How would an analyst spawn this feature from the Terminal?
+      placeholder: "e.g., SLIPSTREAM 2024 ITA Q VER"
+    validations:
+      required: true

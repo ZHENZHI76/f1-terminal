@@ -1,0 +1,43 @@
+name: Quant Engine Bug Report
+description: Submit a bug report for F1 Terminal when a CLI command fails or charts crash
+title: "[BUG] "
+labels: ["bug", "quant-engine"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We appreciate your rigorous attention to the F1 Terminal telemetry engine. To maintain our standard of quality, please fill out this report completely.
+  - type: input
+    id: command
+    attributes:
+      label: CLI Command execution
+      description: What was the exact command string you typed into the F1 Terminal Prompt?
+      placeholder: "[COMMAND] TEL 2024 BAH Q VER LEC"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs. Actual Behavior
+      description: What did you expect to happen mathematically or visually, and what actually occurred?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Backend Uvicorn / FastF1 Logs
+      description: Please copy the console output from the FastAPI backend. Error traces from `fastf1` or `polars` are critical here.
+    validations:
+      required: true
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating System
+      description: What OS was running the Quant Engine?
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Docker Container
+    validations:
+      required: true

@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+fastf1
+polars
+numpy
+scipy
+openai

@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@import 'react-grid-layout/css/styles.css';
+@import 'react-resizable/css/styles.css';
+
+@theme {
+  --color-background: #000000;
+  --color-foreground: #ffffff;
+  --color-neon-ferrari-red: #ff2800;
+  --color-neon-redbull-blue: #0600ef;
+  --color-neon-mclaren-orange: #ff8000;
+  --color-neon-mercedes-silver: #00d2be;
+  --color-neon-aston-green: #006f62;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+}
+
+/* Override react-grid-layout default colors to match Bloomberg dark terminal aesthetic */
+.react-grid-item {
+  background: #111111;
+  /* Extremely dark gray panel */
+  border: 1px solid #333333;
+  border-radius: 4px;
+}
+
+.react-grid-item.react-grid-placeholder {
+  background: var(--color-neon-ferrari-red);
+  opacity: 0.2;
+}
+
+.react-resizable-handle {
+  filter: invert(1);
+  /* Invert the drag handle color to be visible on dark bg */
+}

@@ -1,0 +1,30 @@
+# Next.js Frontend Modules
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# FastAPI Python Backend Modules
+backend/__pycache__/
+backend/.pytest_cache/
+backend/venv/
+backend/.venv/
+backend/env/
+backend/.env
+backend/.env.test
+
+# Hardcore F1 Caching (DO NOT PUSH THIS OR GITHUB WILL BE MAD)
+backend/f1_cache/
+
+# Quant Engine Logs / OS generated files
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE Configurations
+.vscode/
+.idea/
