@@ -26,6 +26,8 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
             let isPost = true;
             let queryUrl = '';
 
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
             if (widget.viewMode === 'raw') {
                 isPost = false;
                 let dataset = 'telemetry';
@@ -40,9 +42,9 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                     driverQuery = `&driver=${widget.params[3]}`;
                 }
 
-                queryUrl = `/api/v1/data/${dataset}?year=${year}&prix=${prix}&session=${session}${driverQuery}`;
+                queryUrl = `/data/${dataset}?year=${year}&prix=${prix}&session=${session}${driverQuery}`;
             } else if (widget.type === 'TEL') {
-                endpoint = '/api/v1/telemetry/compare';
+                endpoint = '/telemetry/compare';
                 payload = {
                     year: parseInt(widget.params[0]),
                     prix: widget.params[1],
@@ -51,7 +53,7 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                     driver_b: widget.params[4]
                 };
             } else if (widget.type === 'MAP_SPD') {
-                endpoint = '/api/v1/track-map/speed';
+                endpoint = '/track-map/speed';
                 payload = {
                     year: parseInt(widget.params[0]),
                     prix: widget.params[1],
@@ -59,7 +61,7 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                     driver: widget.params[3]
                 };
             } else if (widget.type === 'STINT') {
-                endpoint = '/api/v1/strategy/stints';
+                endpoint = '/strategy/stints';
                 payload = {
                     year: parseInt(widget.params[0]),
                     prix: widget.params[1],
@@ -67,7 +69,7 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                     driver_a: widget.params[3]
                 };
             } else if (widget.type === 'MAP_GEAR') {
-                endpoint = '/api/v1/track-map/gear';
+                endpoint = '/track-map/gear';
                 payload = {
                     year: parseInt(widget.params[0]),
                     prix: widget.params[1],
@@ -75,7 +77,7 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                     driver: widget.params[3]
                 };
             } else if (widget.type === 'DOM') {
-                endpoint = '/api/v1/dominance/map';
+                endpoint = '/dominance/map';
                 payload = {
                     year: parseInt(widget.params[0]),
                     prix: widget.params[1],
@@ -84,7 +86,7 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                     driver_b: widget.params[4]
                 };
             } else if (widget.type === 'INSIGHT') {
-                endpoint = '/api/v1/insight/generate';
+                endpoint = '/insight/generate';
                 payload = {
                     year: parseInt(widget.params[0]),
                     prix: widget.params[1],
@@ -96,7 +98,7 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                 throw new Error(`Widget type ${widget.type} logic missing.`);
             }
 
-            const fetchUrl = isPost ? `http://localhost:8000${endpoint}` : `http://localhost:8000${queryUrl}`;
+            const fetchUrl = isPost ? `${baseUrl}${endpoint}` : `${baseUrl}${queryUrl}`;
 
             const fetchInit: RequestInit = isPost
                 ? {

@@ -21,7 +21,8 @@ export default function TickerBar() {
     useEffect(() => {
         const fetchMacro = async () => {
             try {
-                const res = await fetch('http://localhost:8000/api/v1/macro/next-event');
+                const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+                const res = await fetch(`${baseUrl}/macro/next-event`);
                 if (!res.ok) throw new Error("Macro fetch failed");
                 const json = await res.json();
                 if (json.status === 'success') {
