@@ -9,10 +9,11 @@ router = APIRouter()
 @router.post("/insight/generate")
 async def generate_insight(req: TelemetryRequest):
     """
-    Generate DeepSeek V3 quantitative strategy insight report.
+    Generate DeepSeek-Reasoner quantitative strategy insight report.
+    Returns both the chain-of-thought reasoning and the final analysis.
     """
     try:
-        report = await generate_deepseek_insight(
+        result = await generate_deepseek_insight(
             req.year, 
             req.prix, 
             req.session, 
@@ -21,7 +22,8 @@ async def generate_insight(req: TelemetryRequest):
         )
         return {
             "status": "success",
-            "report": report
+            "reasoning": result.get("reasoning"),
+            "report": result.get("report")
         }
     except ValueError as ve:
         raise HTTPException(status_code=404, detail=str(ve))

@@ -118,9 +118,9 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
 
             const json = await response.json();
 
-            // For INSIGHT, we get a text report, else we get data
+            // For INSIGHT, we get reasoning + report structure
             if (widget.type === 'INSIGHT') {
-                setData(json.report);
+                setData({ reasoning: json.reasoning, report: json.report });
             } else {
                 setData(json.data);
             }
@@ -178,14 +178,35 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                 return <StintAnalysisChart data={data} />;
             case 'DOM':
                 return <DominanceMapChart data={data} />;
-            case 'INSIGHT':
+            case 'INSIGHT': {
+                const insightData = data as { reasoning?: string; report?: string };
                 return (
-                    <div className="w-full h-full p-4 overflow-auto bg-[#0a0a0a]">
-                        <pre className="text-gray-300 font-mono text-[11px] leading-relaxed whitespace-pre-wrap">
-                            {data}
-                        </pre>
+                    <div className="w-full h-full overflow-auto bg-[#0a0a0a] font-mono text-[11px] leading-relaxed">
+                        {/* DeepSeek-Reasoner Chain-of-Thought */}
+                        {insightData.reasoning && (
+                            <details className="border-b border-[#222] mb-0">
+                                <summary className="cursor-pointer px-4 py-2 bg-[#111] text-[#666] hover:text-[#999] uppercase tracking-widest text-[10px] font-bold select-none">
+                                    ⚡ DEEPSEEK-REASONER CHAIN-OF-THOUGHT ({insightData.reasoning.length.toLocaleString()} chars)
+                                </summary>
+                                <div className="px-4 py-3 bg-[#080808] border-l-2 border-[#333] max-h-[40vh] overflow-auto">
+                                    <pre className="text-[#555] whitespace-pre-wrap text-[10px] leading-relaxed">
+                                        {insightData.reasoning}
+                                    </pre>
+                                </div>
+                            </details>
+                        )}
+                        {/* Final Strategy Report */}
+                        <div className="px-4 py-3">
+                            <div className="text-[#00ff41] uppercase tracking-[0.2em] text-[10px] font-bold mb-3 border-b border-[#1a1a1a] pb-2">
+                                ◆ QUANT STRATEGY DESK — DEEPSEEK-REASONER OUTPUT
+                            </div>
+                            <pre className="text-gray-300 whitespace-pre-wrap leading-relaxed">
+                                {insightData.report || 'No report generated.'}
+                            </pre>
+                        </div>
                     </div>
                 );
+            }
             default:
                 return <span className="text-gray-500 font-mono text-xs text-center p-4">Unsupported Widget Type</span>;
         }

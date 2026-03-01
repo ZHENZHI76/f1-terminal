@@ -12,6 +12,8 @@ services:
     environment:
       # CORS: Allow front-end production domain to access API
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      # DeepSeek-Reasoner API Key for AI Insight reports
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
     volumes:
       # CRITICAL: Maps the internal f1_cache to the host machine.
       # This prevents the FIA APIs from throttling us or re-downloading 
