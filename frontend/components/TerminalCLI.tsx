@@ -43,37 +43,37 @@ export default function TerminalCLI() {
             if (cmd === "TEL" || cmd === "PACE" || cmd === "TELEMETRY") {
                 // EX: TEL 2024 BAH Q VER PER
                 const args = parts.slice(1);
-                addWidget('TEL', args, { x: 0, y: 0, w: 10, h: 14, minW: 6, minH: 8 }, viewMode);
+                addWidget('TEL', args, { x: 0, y: 0, w: 8, h: 12, minW: 3, minH: 4 }, viewMode);
             }
             else if (cmd === "MAP" && parts[1] === "SPD") {
                 // EX: MAP SPD 2024 BAH Q VER
                 const args = parts.slice(2);
-                addWidget('MAP_SPD', args, { x: 8, y: 0, w: 4, h: 10, minW: 3, minH: 8 }, viewMode);
+                addWidget('MAP_SPD', args, { x: 8, y: 0, w: 4, h: 12, minW: 2, minH: 4 }, viewMode);
             }
             else if (cmd === "MAP" && parts[1] === "GEAR") {
                 // EX: MAP GEAR 2024 BAH Q VER
                 const args = parts.slice(2);
-                addWidget('MAP_GEAR', args, { x: 8, y: 0, w: 4, h: 10, minW: 3, minH: 8 }, viewMode);
+                addWidget('MAP_GEAR', args, { x: 8, y: 0, w: 4, h: 12, minW: 2, minH: 4 }, viewMode);
             }
             else if (cmd === "STINT") {
                 const args = parts.slice(1);
-                addWidget('STINT', args, { x: 0, y: 10, w: 8, h: 10, minW: 4, minH: 5 }, viewMode);
+                addWidget('STINT', args, { x: 0, y: 0, w: 8, h: 10, minW: 3, minH: 3 }, viewMode);
             }
             else if (cmd === "DOM") {
                 const args = parts.slice(1);
-                addWidget('DOM', args, { x: 0, y: 10, w: 6, h: 12, minW: 4, minH: 6 }, viewMode);
+                addWidget('DOM', args, { x: 0, y: 0, w: 6, h: 12, minW: 3, minH: 4 }, viewMode);
             }
             else if (cmd === "INSIGHT") {
                 const args = parts.slice(1);
-                addWidget('INSIGHT', args, { x: 0, y: 0, w: 6, h: 16, minW: 4, minH: 8 }, viewMode);
+                addWidget('INSIGHT', args, { x: 0, y: 0, w: 6, h: 14, minW: 3, minH: 4 }, viewMode);
             }
             else if (cmd === "WEATHER") {
                 const args = parts.slice(1);
-                addWidget('WEATHER', args, { x: 0, y: 0, w: 6, h: 10, minW: 4, minH: 5 }, 'raw'); // Weather defaults to raw table
+                addWidget('WEATHER', args, { x: 0, y: 0, w: 6, h: 10, minW: 2, minH: 3 }, 'raw'); // Weather defaults to raw table
             }
             else if (cmd === "MSG") {
                 const args = parts.slice(1);
-                addWidget('MSG', args, { x: 6, y: 0, w: 6, h: 10, minW: 4, minH: 5 }, 'raw'); // Messages defaults to raw table
+                addWidget('MSG', args, { x: 6, y: 0, w: 6, h: 10, minW: 2, minH: 3 }, 'raw'); // Messages defaults to raw table
             }
             else {
                 console.warn(`[TERMINAL] Unknown command: ${cmd}`);

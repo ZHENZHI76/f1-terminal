@@ -20,7 +20,20 @@
   }
 }
 
-/* Override react-grid-layout default colors to match Bloomberg dark terminal aesthetic */
+/* ==========================================
+   Bloomberg Terminal Grid Background
+   Subtle dot-matrix pattern for spatial orientation
+   ========================================== */
+.bloomberg-grid-bg {
+  background-color: #050505;
+  background-image:
+    radial-gradient(circle, #1a1a1a 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ==========================================
+   React-Grid-Layout Panel Styling
+   ========================================== */
 .react-grid-item {
   background: #0a0a0a;
   border: 1px solid #222;
@@ -30,146 +43,129 @@
 
 .react-grid-item:hover {
   border-color: #333;
+  box-shadow: 0 0 12px rgba(0, 255, 65, 0.03);
 }
 
+/* Active drag state */
+.react-grid-item.react-draggable-dragging {
+  border-color: #00ff41 !important;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.08);
+  opacity: 0.9;
+  z-index: 100;
+}
+
+/* Resize active state */
+.react-grid-item.resizing {
+  border-color: #ff8000 !important;
+  box-shadow: 0 0 16px rgba(255, 128, 0, 0.1);
+}
+
+/* Drop placeholder */
 .react-grid-item.react-grid-placeholder {
-  background: var(--color-neon-ferrari-red);
-  opacity: 0.15;
-  border: 1px dashed var(--color-neon-ferrari-red);
+  background: #00ff41;
+  opacity: 0.06;
+  border: 1px dashed #00ff41;
   border-radius: 2px;
 }
 
-/* ========================================
-   Bloomberg-style Multi-Directional Resize Handles
-   ======================================== */
+/* ==========================================
+   Multi-directional Resize Handles
+   ========================================== */
 
-/* Base: hide default react-resizable icon */
+/* Base reset for all handles */
 .react-resizable-handle {
-  filter: none;
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  position: absolute;
   z-index: 10;
+  filter: none;
+  background: none;
+  background-image: none !important;
 }
 
-/* Show handles only on panel hover */
-.react-grid-item:hover .react-resizable-handle {
-  opacity: 1;
-}
-
-/* Corner handles (8x8 squares) */
-.react-resizable-handle-se,
-.react-resizable-handle-sw,
-.react-resizable-handle-ne,
-.react-resizable-handle-nw {
-  width: 10px;
-  height: 10px;
-  background: transparent;
-}
-
-.react-resizable-handle-se:hover,
-.react-resizable-handle-sw:hover,
-.react-resizable-handle-ne:hover,
-.react-resizable-handle-nw:hover {
-  background: rgba(255, 40, 0, 0.4);
-}
-
-/* Edge handles (full edge strips) */
-.react-resizable-handle-n,
+/* South (bottom edge) */
 .react-resizable-handle-s {
-  width: 100%;
+  bottom: 0;
+  left: 8px;
+  right: 8px;
   height: 6px;
-  left: 0;
-  cursor: ns-resize;
-  background: transparent;
+  cursor: s-resize;
 }
 
-.react-resizable-handle-n {
-  top: -3px;
-}
-
-.react-resizable-handle-s {
-  bottom: -3px;
-}
-
-.react-resizable-handle-e,
-.react-resizable-handle-w {
-  height: 100%;
-  width: 6px;
-  top: 0;
-  cursor: ew-resize;
-  background: transparent;
-}
-
+/* East (right edge) */
 .react-resizable-handle-e {
-  right: -3px;
+  top: 8px;
+  right: 0;
+  bottom: 8px;
+  width: 6px;
+  cursor: e-resize;
 }
 
+/* West (left edge) */
 .react-resizable-handle-w {
-  left: -3px;
+  top: 8px;
+  left: 0;
+  bottom: 8px;
+  width: 6px;
+  cursor: w-resize;
 }
 
-/* Hover feedback on edges */
-.react-resizable-handle-n:hover,
-.react-resizable-handle-s:hover {
-  background: linear-gradient(to bottom, rgba(255, 40, 0, 0.3), transparent);
-}
-
-.react-resizable-handle-e:hover,
-.react-resizable-handle-w:hover {
-  background: linear-gradient(to right, rgba(255, 40, 0, 0.3), transparent);
-}
-
-/* Remove the default :: after triangle arrow indicator */
-.react-resizable-handle::after {
-  display: none !important;
-}
-
-/* Corner cursors */
+/* South-East corner */
 .react-resizable-handle-se {
-  cursor: nwse-resize;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: se-resize;
 }
 
-.react-resizable-handle-sw {
-  cursor: nesw-resize;
-}
-
-.react-resizable-handle-ne {
-  cursor: nesw-resize;
-}
-
-.react-resizable-handle-nw {
-  cursor: nwse-resize;
-}
-
-/* Active drag state: glow effect on panel border */
-.react-grid-item.resizing {
-  border-color: var(--color-neon-ferrari-red);
-  box-shadow: 0 0 12px rgba(255, 40, 0, 0.15);
-}
-
-.react-grid-item.react-draggable-dragging {
-  border-color: var(--color-neon-mercedes-silver);
-  box-shadow: 0 0 15px rgba(0, 210, 190, 0.15);
-  z-index: 999;
-}
-
-/* ========================================
-   Scrollbar Styling (Bloomberg Dark)
-   ======================================== */
-::-webkit-scrollbar {
+.react-resizable-handle-se::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
   width: 6px;
   height: 6px;
+  border-right: 2px solid #333;
+  border-bottom: 2px solid #333;
 }
 
-::-webkit-scrollbar-track {
-  background: #0a0a0a;
+.react-grid-item:hover .react-resizable-handle-se::after {
+  border-right-color: #555;
+  border-bottom-color: #555;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 3px;
+/* South-West corner */
+.react-resizable-handle-sw {
+  bottom: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  cursor: sw-resize;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
+.react-resizable-handle-sw::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 3px;
+  width: 6px;
+  height: 6px;
+  border-left: 2px solid #333;
+  border-bottom: 2px solid #333;
+}
+
+.react-grid-item:hover .react-resizable-handle-sw::after {
+  border-left-color: #555;
+  border-bottom-color: #555;
+}
+
+/* Show edge handles on hover only (subtle) */
+.react-grid-item:hover .react-resizable-handle-s,
+.react-grid-item:hover .react-resizable-handle-e,
+.react-grid-item:hover .react-resizable-handle-w {
+  background: linear-gradient(to right, transparent, rgba(51, 51, 51, 0.5), transparent);
+}
+
+.react-grid-item:hover .react-resizable-handle-e,
+.react-grid-item:hover .react-resizable-handle-w {
+  background: linear-gradient(to bottom, transparent, rgba(51, 51, 51, 0.5), transparent);
 }
