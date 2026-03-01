@@ -19,14 +19,15 @@ fastf1.Cache.enable_cache(CACHE_DIR)
 
 app = FastAPI(title="F1 Terminal API", description="High-performance backend for F1 Bloomberg Terminal")
 
-# Fetch Explicit Frontend Domain from Environment for strict CORS
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-
 # Configure CORS for frontend access
+# In production, set CORS_ORIGINS env var to your domain(s), comma-separated.
+# Example: CORS_ORIGINS=https://f1.shuoguo.org,https://f1-api.shuoguo.org
+_default_origins = "http://localhost:3000,http://127.0.0.1:3000"
+_cors_origins = os.environ.get("CORS_ORIGINS", _default_origins).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url, "http://localhost:3000", "http://127.0.0.1:3000"],
-
+    allow_origins=[o.strip() for o in _cors_origins],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

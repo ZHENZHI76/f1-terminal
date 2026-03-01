@@ -18,12 +18,13 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js telemetry is disabled during the build
-ENV NEXT_TELEMETRY_DISABLED 1
+# CRITICAL: NEXT_PUBLIC_* variables are baked at BUILD TIME.
+# This ARG is injected from docker-compose.yml -> build.args
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
-# CRITICAL for Next.js: Public ENVs must be accessible at BUILD time
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# Next.js telemetry is disabled during the build
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Generate standalone build (Requires output: 'standalone' in next.config.ts)
 RUN npm run build
@@ -34,8 +35,8 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -55,8 +56,8 @@ USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
 # Execute server
 CMD ["node", "server.js"]

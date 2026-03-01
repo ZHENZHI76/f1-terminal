@@ -9,13 +9,14 @@ services:
     restart: always
     ports:
       - "127.0.0.1:38000:8000"
+    environment:
+      # CORS: Allow front-end production domain to access API
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
     volumes:
       # CRITICAL: Maps the internal f1_cache to the host machine.
       # This prevents the FIA APIs from throttling us or re-downloading 
       # tens of Gigabytes of raw telemetry on every container restart.
       - ./backend/f1_cache:/app/f1_cache
-    environment:
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
     networks:
       - f1-net
 
@@ -23,16 +24,14 @@ services:
     build: 
       context: ./frontend
       dockerfile: Dockerfile
+      # CRITICAL: NEXT_PUBLIC_* must be injected at BUILD TIME, not runtime.
+      # Next.js bakes these into the JavaScript bundle during `npm run build`.
       args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:38000}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     container_name: f1-terminal-frontend
     restart: always
     ports:
       - "127.0.0.1:35000:3000"
-    environment:
-      # Points to the external public IP/Domain of your server.
-      # Do not use 'localhost' if deploying to an Ubuntu cloud instance.
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}/api/v1
     depends_on:
       - backend
     networks:

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '@/lib/api';
 
 interface MacroData {
     EventName: string;
@@ -21,8 +22,7 @@ export default function TickerBar() {
     useEffect(() => {
         const fetchMacro = async () => {
             try {
-                const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-                const res = await fetch(`${baseUrl}/macro/next-event`);
+                const res = await fetch(`${API_BASE_URL}/api/v1/macro/next-event`);
                 if (!res.ok) throw new Error("Macro fetch failed");
                 const json = await res.json();
                 if (json.status === 'success') {
