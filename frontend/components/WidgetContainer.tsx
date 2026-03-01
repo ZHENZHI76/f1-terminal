@@ -95,8 +95,8 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
             } else {
                 throw new Error(`Widget type ${widget.type} logic missing.`);
             }
-
-            const fetchUrl = isPost ? `http://localhost:8000${endpoint}` : `http://localhost:8000${queryUrl}`;
+            const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const fetchUrl = isPost ? `${API_BASE}${endpoint}` : `${API_BASE}${queryUrl}`;
 
             const fetchInit: RequestInit = isPost
                 ? {
