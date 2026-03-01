@@ -26,7 +26,7 @@ export default function GridWorkspace() {
         return () => window.removeEventListener('resize', checkResponsive);
     }, []);
 
-    const handleLayoutChange = (newLayout: Layout[]) => {
+    const handleLayoutChange = (newLayout: any) => {
         updateLayout(newLayout);
     };
 
@@ -52,7 +52,7 @@ export default function GridWorkspace() {
                 <Responsive
                     className="layout"
                     width={containerWidth}
-                    layouts={{ lg: widgets.map(w => w.layout as Layout) }}
+                    layouts={{ lg: widgets.map(w => w.layout as any) }}
                     breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
                     cols={{ lg: 12, md: 10, sm: 6, xs: 2, xxs: 1 }}
                     rowHeight={30}
