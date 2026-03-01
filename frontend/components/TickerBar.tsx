@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '@/lib/constants';
 
 interface MacroData {
     EventName: string;
@@ -13,15 +14,20 @@ interface MacroData {
 
 export default function TickerBar() {
     const [macroData, setMacroData] = useState<MacroData | null>(null);
-    const [currentTime, setCurrentTime] = useState<Date>(new Date());
-    const [countdownFormatted, setCountdownFormatted] = useState<string>("00:00:00:00");
+    // Hydration fix: initialize to a stable value, update on client only
+    const [currentTime, setCurrentTime] = useState<Date | null>(null);
+    const [countdownFormatted, setCountdownFormatted] = useState<string>("--:--:--:--");
     const [isOnline, setIsOnline] = useState<boolean>(false);
+    const [hasMounted, setHasMounted] = useState(false);
+
+    // Client-only mount flag to prevent SSR/client hydration mismatch (React #418)
+    useEffect(() => { setHasMounted(true); setCurrentTime(new Date()); }, []);
 
     // Initial Data Fetch
     useEffect(() => {
         const fetchMacro = async () => {
             try {
-                const res = await fetch('http://localhost:8000/api/v1/macro/next-event');
+                const res = await fetch(`${API_BASE_URL}/api/v1/macro/next-event`);
                 if (!res.ok) throw new Error("Macro fetch failed");
                 const json = await res.json();
                 if (json.status === 'success') {
@@ -107,7 +113,7 @@ export default function TickerBar() {
                 <span className="text-gray-700 font-bold">||</span>
 
                 <span className="text-gray-500 font-mono text-[11px] font-light">
-                    CURRENT UTC: <span className="text-gray-300 font-bold">{formatCurrentUTC(currentTime)}</span>
+                    CURRENT UTC: <span className="text-gray-300 font-bold">{currentTime ? formatCurrentUTC(currentTime) : '--'}</span>
                 </span>
 
                 <span className="text-gray-700 font-bold">||</span>

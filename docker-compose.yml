@@ -14,6 +14,10 @@ services:
       # This prevents the FIA APIs from throttling us or re-downloading 
       # tens of Gigabytes of raw telemetry on every container restart.
       - ./backend/f1_cache:/app/f1_cache
+    environment:
+      # Comma-separated list of allowed CORS origins for the FastAPI backend.
+      # Must include your production frontend domain with https.
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
     networks:
       - f1-net
 
@@ -21,14 +25,14 @@ services:
     build: 
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        # CRITICAL: Next.js bakes NEXT_PUBLIC_* at BUILD TIME, not runtime.
+        # This value is compiled into the JS bundle during `npm run build`.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     container_name: f1-terminal-frontend
     restart: always
     ports:
       - "127.0.0.1:35000:3000"
-    environment:
-      # Points to the external public IP/Domain of your server.
-      # Do not use 'localhost' if deploying to an Ubuntu cloud instance.
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}/api/v1
     depends_on:
       - backend
     networks:

@@ -21,6 +21,11 @@ COPY . .
 # Next.js telemetry is disabled during the build
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# CRITICAL: NEXT_PUBLIC_* env vars are baked at BUILD TIME, not runtime.
+# Pass via: docker build --build-arg NEXT_PUBLIC_API_URL=https://api.f1.yourdomain.com
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Generate standalone build (Requires output: 'standalone' in next.config.ts)
 RUN npm run build
 
