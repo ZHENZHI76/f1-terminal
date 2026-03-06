@@ -50,14 +50,14 @@ def get_universal_data(
             
         elif dataset == 'laps':
             if driver:
-                data_df = f1_session.laps.pick_driver(driver)
+                data_df = f1_session.laps.pick_drivers(driver)
             else:
                 data_df = f1_session.laps
                 
         elif dataset == 'telemetry':
             if not driver:
                 raise HTTPException(status_code=400, detail="Driver is required for telemetry datasets.")
-            fastest_lap = f1_session.laps.pick_driver(driver).pick_fastest()
+            fastest_lap = f1_session.laps.pick_drivers(driver).pick_fastest()
             if getattr(fastest_lap, 'empty', True):
                 raise ValueError(f"No fastest lap found for driver {driver}")
             

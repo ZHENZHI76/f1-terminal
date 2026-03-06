@@ -24,18 +24,16 @@ def get_stint_analysis(year: int, grand_prix: str, session_type: str, driver: st
         session.load(telemetry=False, laps=True, weather=False)
         
         # 1. Load laps for driver
-        laps = session.laps.pick_driver(driver)
+        laps = session.laps.pick_drivers(driver)
         
         if laps.empty:
             raise ValueError(f"No laps found for {driver} in {year} {grand_prix} {session_type}")
 
-        # 2. Strict Data Sanitization
-        # Drop in-laps and out-laps
-        valid_laps = laps.loc[(laps['PitOutTime'].isnull()) & (laps['PitInTime'].isnull())].copy()
-        
-        # Drop yellow flags, VSC, SC (TrackStatus must be '1', or '1' and '2', we will use '1' for purely green flag conditions)
-        # However, track status might contain multiple string digits. Let's just pick accurate laps usually determined by fastf1 'is_accurate'
-        valid_laps = valid_laps[valid_laps['IsAccurate'] == True].copy()
+        # 2. Strict Data Sanitization using FastF1 built-in methods
+        # pick_wo_box: Remove in-laps and out-laps
+        # pick_track_status('1'): Only green flag laps
+        # pick_accurate: Timing sync validation
+        valid_laps = laps.pick_wo_box().pick_track_status('1', how='any').pick_accurate().copy()
         
         if valid_laps.empty:
             raise ValueError(f"No valid racing laps found for {driver} after sanitization.")
@@ -74,13 +72,24 @@ def get_stint_analysis(year: int, grand_prix: str, session_type: str, driver: st
                     "Compound": compound
                 })
                 
-            # Linear Regression
+            # Linear Regression: T_lap = T_base + α·L + f(W_f)
             slope, intercept, r_value, p_value, std_err = linregress(x, y)
+            
+            # Fuel correction: ~1.8 kg/lap burn × ~0.015 s/kg ≈ 0.027 s/lap lighter
+            FUEL_CORRECTION_PER_LAP = 0.027
+            # Pure tyre degradation = raw slope + fuel gain (since fuel makes car faster over time)
+            tyre_deg_slope = slope + FUEL_CORRECTION_PER_LAP
+            
             trendlines.append({
                 "Stint": int(stint),
                 "Compound": compound,
-                "Slope": float(slope),      # Degradation per lap in seconds
+                "Slope": float(slope),             # Raw degradation (incl. fuel effect)
+                "TyreDegSlope": float(tyre_deg_slope),  # Pure tyre deg (fuel-corrected)
+                "FuelCorrPerLap": FUEL_CORRECTION_PER_LAP,
                 "Intercept": float(intercept),
+                "R2": round(float(r_value ** 2), 4),
+                "PValue": float(p_value),
+                "StdErr": float(std_err),
                 "StartX": int(x.min()),
                 "EndX": int(x.max())
             })

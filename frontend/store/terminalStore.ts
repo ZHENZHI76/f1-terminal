@@ -1,6 +1,7 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-export type WidgetType = 'TEL' | 'MAP_SPD' | 'MAP_GEAR' | 'STRAT' | 'STINT' | 'GG' | 'DOM' | 'INSIGHT' | 'WEATHER' | 'MSG';
+export type WidgetType = 'TEL' | 'MAP_SPD' | 'MAP_GEAR' | 'STRAT' | 'STINT' | 'GG' | 'DOM' | 'INSIGHT' | 'WEATHER' | 'MSG' | 'RES' | 'SEC' | 'DRIVERS' | 'QUAL' | 'POS' | 'PITSTOP' | 'WDC' | 'WCC' | 'LAPS' | 'SCHEDULE' | 'PACE' | 'CIRCUIT';
 
 export interface WidgetLayout {
     i: string;
@@ -28,36 +29,47 @@ interface TerminalState {
     clearAll: () => void;
 }
 
-export const useTerminalStore = create<TerminalState>((set) => ({
-    widgets: [],
+export const useTerminalStore = create<TerminalState>()(
+    persist(
+        (set) => ({
+            widgets: [],
 
-    addWidget: (type, params, defaultLayout, viewMode) => set((state) => {
-        const id = `${type}-${Date.now()}`; // Generate unique collision-free ID
-        const newWidget: Widget = {
-            id,
-            type,
-            params,
-            layout: { ...defaultLayout, i: id },
-            viewMode
-        };
-        return { widgets: [...state.widgets, newWidget] };
-    }),
+            addWidget: (type, params, defaultLayout, viewMode) => set((state) => {
+                const id = `${type}-${Date.now()}`;
+                const newWidget: Widget = {
+                    id,
+                    type,
+                    params,
+                    layout: { ...defaultLayout, i: id },
+                    viewMode
+                };
+                return { widgets: [...state.widgets, newWidget] };
+            }),
 
-    removeWidget: (id) => set((state) => ({
-        widgets: state.widgets.filter(w => w.id !== id)
-    })),
+            removeWidget: (id) => set((state) => ({
+                widgets: state.widgets.filter(w => w.id !== id)
+            })),
 
-    updateLayout: (newLayout) => set((state) => {
-        // Map the new incoming RGL layout array onto our widgets state
-        const updatedWidgets = state.widgets.map(widget => {
-            const runtimeLayout = newLayout.find(l => l.i === widget.id);
-            if (runtimeLayout) {
-                return { ...widget, layout: runtimeLayout };
-            }
-            return widget;
-        });
-        return { widgets: updatedWidgets };
-    }),
+            updateLayout: (newLayout) => set((state) => {
+                const updatedWidgets = state.widgets.map(widget => {
+                    const runtimeLayout = newLayout.find(l => l.i === widget.id);
+                    if (runtimeLayout) {
+                        return { ...widget, layout: runtimeLayout };
+                    }
+                    return widget;
+                });
+                return { widgets: updatedWidgets };
+            }),
 
-    clearAll: () => set({ widgets: [] })
-}));
+            clearAll: () => set({ widgets: [] })
+        }),
+        {
+            name: 'f1-terminal-workspace',  // localStorage key
+            version: 1,                     // Schema version for future migrations
+            partialize: (state) => ({
+                // Only persist widget definitions, NOT store functions
+                widgets: state.widgets
+            }),
+        }
+    )
+);

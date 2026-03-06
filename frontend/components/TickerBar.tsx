@@ -6,10 +6,16 @@ import { API_BASE_URL } from '@/lib/api';
 interface MacroData {
     EventName: string;
     Country: string;
+    Location: string;
+    Round: number;
     NextSession: string;
+    EventFormat: string;
     StartTimeUTC: string;
+    StartTimeFormatted: string;
     TrackTemp: string;
     AirTemp: string;
+    Humidity: string;
+    Rainfall: boolean;
 }
 
 export default function TickerBar() {
@@ -36,7 +42,7 @@ export default function TickerBar() {
         };
         fetchMacro();
 
-        // Refetch macro data every 5 minutes just in case
+        // Refetch every 5 minutes
         const macroInterval = setInterval(fetchMacro, 300000);
         return () => clearInterval(macroInterval);
     }, []);
@@ -47,7 +53,6 @@ export default function TickerBar() {
             const now = new Date();
             setCurrentTime(now);
 
-            // Calculate countdown if we have a start time
             if (macroData?.StartTimeUTC) {
                 const eventTime = new Date(macroData.StartTimeUTC).getTime();
                 const diffMs = eventTime - now.getTime();
@@ -63,9 +68,9 @@ export default function TickerBar() {
                     const mStr = minutes.toString().padStart(2, '0');
                     const sStr = seconds.toString().padStart(2, '0');
 
-                    setCountdownFormatted(`${dStr}:${hStr}:${mStr}:${sStr}`);
+                    setCountdownFormatted(`${dStr}D ${hStr}:${mStr}:${sStr}`);
                 } else {
-                    setCountdownFormatted("RACE LIVE");
+                    setCountdownFormatted("SESSION LIVE");
                 }
             }
         }, 1000);
@@ -74,54 +79,103 @@ export default function TickerBar() {
     }, [macroData]);
 
     const formatCurrentUTC = (d: Date) => {
-        return d.toISOString().replace('.000', '').replace('T', ' ');
+        return d.toISOString().replace('.000', '').replace('T', ' ').slice(0, -1);
+    };
+
+    // Session type color coding
+    const getSessionColor = (session: string) => {
+        if (!session) return 'text-gray-400';
+        const s = session.toUpperCase();
+        if (s === 'RACE') return 'text-[#e10600]';           // Ferrari Red for Race
+        if (s.includes('QUALIFYING') || s.includes('QUAL')) return 'text-[#ff8000]';  // Orange for Qualifying
+        if (s.includes('SPRINT')) return 'text-[#00d2ff]';    // Cyan for Sprint
+        if (s.includes('PRACTICE') || s.includes('FP')) return 'text-[#00ff41]';     // Green for Practice
+        return 'text-[#ccc]';
+    };
+
+    // Weather emoji
+    const getWeatherIcon = () => {
+        if (macroData?.Rainfall) return '🌧️';
+        return '☀️';
     };
 
     return (
         <div className="w-full h-8 bg-[#050505] border-b border-[#222] flex items-center px-4 overflow-hidden shadow-md fixed top-0 left-0 z-50">
             {/* System Status Indicator */}
-            <div className="flex items-center space-x-2 mr-6 shrink-0">
+            <div className="flex items-center space-x-2 mr-4 shrink-0">
                 <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-[#00ff41] animate-pulse shadow-[0_0_8px_#00ff41]' : 'bg-[#ff2800]'} `} />
                 <span className={`text-[10px] font-mono font-bold tracking-widest ${isOnline ? 'text-[#00ff41]' : 'text-[#ff2800]'}`}>
-                    {isOnline ? 'SYS ONLINE' : 'SYS OFFLINE'}
+                    {isOnline ? 'LIVE' : 'OFFLINE'}
                 </span>
             </div>
 
-            {/* Scrolling / Flex Ticker Tape */}
-            <div className="flex-1 flex items-center space-x-6 whitespace-nowrap overflow-hidden">
-                <span className="text-gray-500 font-mono text-[11px] font-light">
-                    NEXT GP: <span className="text-white font-bold">{macroData?.EventName?.toUpperCase() || 'QUERYING...'} {macroData?.Country ? '📍' : ''}</span>
+            {/* Ticker Tape */}
+            <div className="flex-1 flex items-center space-x-4 whitespace-nowrap overflow-hidden">
+                {/* Event + Round */}
+                <span className="text-gray-500 font-mono text-[11px] font-light hidden lg:inline">
+                    {macroData?.Round ? `R${macroData.Round}` : ''}{' '}
+                    <span className="text-white font-bold">{macroData?.EventName?.toUpperCase() || 'QUERYING...'}</span>
+                    {macroData?.Location && macroData?.Location !== 'N/A' && (
+                        <span className="text-[#555] ml-1">📍{macroData.Location}</span>
+                    )}
                 </span>
 
-                <span className="text-gray-700 font-bold">||</span>
-
-                <span className="text-gray-500 font-mono text-[11px] font-light">
-                    SESSION: <span className="text-[#0600ef] font-bold">{macroData?.NextSession || '---'}</span>
+                {/* Mobile: shorter event name */}
+                <span className="text-white font-mono text-[11px] font-bold lg:hidden">
+                    {macroData?.EventName?.toUpperCase() || '...'}
                 </span>
 
-                <span className="text-gray-700 font-bold">||</span>
+                <span className="text-gray-700 font-bold">│</span>
 
+                {/* Next Session */}
                 <span className="text-gray-500 font-mono text-[11px] font-light">
-                    T-MINUS: <span className="text-[#ff2800] font-bold text-[12px]">{countdownFormatted}</span>
+                    NEXT: <span className={`font-bold ${getSessionColor(macroData?.NextSession || '')}`}>
+                        {macroData?.NextSession || '---'}
+                    </span>
                 </span>
 
-                <span className="text-gray-700 font-bold">||</span>
+                <span className="text-gray-700 font-bold">│</span>
 
+                {/* Countdown */}
                 <span className="text-gray-500 font-mono text-[11px] font-light">
-                    CURRENT UTC: <span className="text-gray-300 font-bold">{formatCurrentUTC(currentTime)}</span>
+                    T- <span className="text-[#ff2800] font-bold text-[12px] tabular-nums">{countdownFormatted}</span>
                 </span>
 
-                <span className="text-gray-700 font-bold">||</span>
+                <span className="text-gray-700 font-bold hidden md:inline">│</span>
 
-                <span className="text-gray-500 font-mono text-[11px] font-light">
-                    WEATHER: <span className="text-yellow-500 font-bold">TRACK {macroData?.TrackTemp || '--'} AIR {macroData?.AirTemp || '--'}</span>
+                {/* Weather */}
+                <span className="text-gray-500 font-mono text-[11px] font-light hidden md:inline">
+                    {getWeatherIcon()}{' '}
+                    <span className="text-yellow-500 font-bold">
+                        T:{macroData?.TrackTemp || '--'}
+                    </span>
+                    <span className="text-gray-500 mx-1">/</span>
+                    <span className="text-sky-400 font-bold">
+                        A:{macroData?.AirTemp || '--'}
+                    </span>
+                    {macroData?.Humidity && macroData.Humidity !== 'N/A' && (
+                        <>
+                            <span className="text-gray-500 mx-1">/</span>
+                            <span className="text-[#888]">💧{macroData.Humidity}</span>
+                        </>
+                    )}
+                </span>
+
+                <span className="text-gray-700 font-bold hidden xl:inline">│</span>
+
+                {/* UTC Clock */}
+                <span className="text-gray-500 font-mono text-[11px] font-light hidden xl:inline">
+                    UTC <span className="text-gray-300 font-bold tabular-nums">{formatCurrentUTC(currentTime)}</span>
                 </span>
             </div>
 
             {/* Terminal Branding right aligned */}
             <div className="ml-auto shrink-0 pl-4 border-l border-[#222] flex items-center h-full">
-                <span className="text-[#333] font-mono text-[10px] font-bold tracking-widest">
-                    QUANT ENGINE // F1_TERMINAL
+                <span className="text-[#333] font-mono text-[10px] font-bold tracking-widest hidden md:inline">
+                    F1 TERMINAL
+                </span>
+                <span className="text-[#333] font-mono text-[10px] font-bold tracking-widest md:hidden">
+                    F1T
                 </span>
             </div>
         </div>

@@ -128,7 +128,8 @@ async def generate_deepseek_insight(year: int, grand_prix: str, session_type: st
     4. Return both reasoning_content (thinking process) and content (final report)
     """
     # 1. Fetch raw telemetry
-    raw_data = get_driver_telemetry_comparison(year, grand_prix, session_type, driver_a, driver_b)
+    result = get_driver_telemetry_comparison(year, grand_prix, session_type, driver_a, driver_b)
+    raw_data = result.get("telemetry", []) if isinstance(result, dict) else result
 
     # 2. Dimensionality reduction
     summary = aggregate_telemetry_for_llm(raw_data, driver_a, driver_b)
@@ -177,7 +178,8 @@ async def generate_deepseek_insight(year: int, grand_prix: str, session_type: st
             messages=[
                 {"role": "user", "content": user_prompt}
             ],
-            max_tokens=4096
+            max_tokens=4096,
+            timeout=120  # 2-minute timeout to prevent indefinite hangs
             # NOTE: deepseek-reasoner does NOT accept temperature or system role
         )
 

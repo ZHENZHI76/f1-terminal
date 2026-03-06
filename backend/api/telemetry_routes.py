@@ -12,7 +12,7 @@ def compare_telemetry(req: TelemetryRequest):
     Fetch and compare fastest lap telemetry for two drivers using quant-level alignment.
     """
     try:
-        data = get_driver_telemetry_comparison(
+        result = get_driver_telemetry_comparison(
             req.year, 
             req.prix, 
             req.session, 
@@ -27,9 +27,11 @@ def compare_telemetry(req: TelemetryRequest):
                 "session": req.session,
                 "driver_a": req.driver_a,
                 "driver_b": req.driver_b,
-                "data_points": len(data)
+                "data_points": len(result.get("telemetry", []))
             },
-            "data": data
+            "lap_meta": result.get("meta", {}),
+            "data": result.get("telemetry", []),
+            "corners": result.get("corners", [])
         }
     except ValueError as ve:
         raise HTTPException(status_code=404, detail=str(ve))

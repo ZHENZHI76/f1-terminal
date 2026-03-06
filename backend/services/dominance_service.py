@@ -16,8 +16,8 @@ def get_dominance_map(year: int, grand_prix: str, session_type: str, driver_a: s
         session = fastf1.get_session(year, grand_prix, session_type)
         session.load(telemetry=True, laps=True, weather=False)
         
-        lap_a = session.laps.pick_driver(driver_a).pick_fastest()
-        lap_b = session.laps.pick_driver(driver_b).pick_fastest()
+        lap_a = session.laps.pick_drivers(driver_a).pick_fastest()
+        lap_b = session.laps.pick_drivers(driver_b).pick_fastest()
         
         if lap_a.empty or lap_b.empty:
             raise ValueError(f"Could not find valid fastest laps for {driver_a} or {driver_b}")
@@ -38,19 +38,21 @@ def get_dominance_map(year: int, grand_prix: str, session_type: str, driver_a: s
         sector_length = max_dist / num_sectors
 
         sector_dominators = [] 
+        sector_deltas = []  # Speed delta per micro-sector (km/h)
 
         for i in range(num_sectors):
             start = i * sector_length
             end = (i + 1) * sector_length
 
-            # Calculate average speed of A and B within the localized distance bin
             mask_a = (dist_a >= start) & (dist_a < end)
             avg_a = np.mean(speed_a[mask_a]) if np.any(mask_a) else 0
 
             mask_b = (dist_b >= start) & (dist_b < end)
             avg_b = np.mean(speed_b[mask_b]) if np.any(mask_b) else 0
 
-            # Tag the prevailing label
+            delta = round(float(avg_a - avg_b), 2)  # Positive = A faster
+            sector_deltas.append(delta)
+
             if avg_a >= avg_b:
                 sector_dominators.append(driver_a)
             else:
@@ -71,6 +73,7 @@ def get_dominance_map(year: int, grand_prix: str, session_type: str, driver_a: s
                 sector_idx = num_sectors - 1
             
             dominator = sector_dominators[sector_idx]
+            delta_kmh = sector_deltas[sector_idx]
             if dominator == driver_a:
                 count_a += 1
             else:
@@ -79,7 +82,8 @@ def get_dominance_map(year: int, grand_prix: str, session_type: str, driver_a: s
             output_nodes.append({
                 "X": float(x),
                 "Y": float(y),
-                "Dominator": dominator
+                "Dominator": dominator,
+                "SpeedDelta": delta_kmh
             })
             
         total = count_a + count_b

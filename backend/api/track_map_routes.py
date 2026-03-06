@@ -10,9 +10,10 @@ router = APIRouter()
 def get_track_map_speed(req: TrackMapRequest):
     """
     Extracts high-resolution XY coordinates paired with Speed to render track geospatial heatmaps.
+    Now includes corner annotations and circuit metadata for overlay rendering.
     """
     try:
-        data = get_track_map_telemetry(
+        result = get_track_map_telemetry(
             req.year,
             req.prix,
             req.session,
@@ -27,9 +28,12 @@ def get_track_map_speed(req: TrackMapRequest):
                 "session": req.session,
                 "driver": req.driver,
                 "map_type": "speed",
-                "nodes": len(data)
+                "nodes": len(result.get("track_data", [])),
+                "circuit_length": result.get("circuit_length", 0),
+                "rotation": result.get("rotation", 0),
             },
-            "data": data
+            "data": result.get("track_data", []),
+            "corners": result.get("corners", []),
         }
     except ValueError as ve:
         raise HTTPException(status_code=404, detail=str(ve))
@@ -41,9 +45,10 @@ def get_track_map_speed(req: TrackMapRequest):
 def get_track_map_gear(req: TrackMapRequest):
     """
     Extracts high-resolution XY coordinates paired with nGear to render transmission telemetry.
+    Now includes corner annotations and circuit metadata for overlay rendering.
     """
     try:
-        data = get_track_map_telemetry(
+        result = get_track_map_telemetry(
             req.year,
             req.prix,
             req.session,
@@ -58,9 +63,12 @@ def get_track_map_gear(req: TrackMapRequest):
                 "session": req.session,
                 "driver": req.driver,
                 "map_type": "gear",
-                "nodes": len(data)
+                "nodes": len(result.get("track_data", [])),
+                "circuit_length": result.get("circuit_length", 0),
+                "rotation": result.get("rotation", 0),
             },
-            "data": data
+            "data": result.get("track_data", []),
+            "corners": result.get("corners", []),
         }
     except ValueError as ve:
         raise HTTPException(status_code=404, detail=str(ve))

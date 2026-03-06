@@ -15,14 +15,37 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 fastf1.Cache.enable_cache(CACHE_DIR)
 
 from typing import Optional
+from services.circuit_info_service import get_corner_distances
 
-def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: str, driver_a: str, driver_b: Optional[str] = None) -> list[dict]:
+def _extract_lap_meta(lap, driver: str) -> dict:
+    """Extract metadata from a lap for context display."""
+    import pandas as pd
+    lt = lap.get("LapTime")
+    s1 = lap.get("Sector1Time")
+    s2 = lap.get("Sector2Time")
+    s3 = lap.get("Sector3Time")
+    return {
+        "driver": driver,
+        "lap_number": int(lap.get("LapNumber", 0)) if not pd.isna(lap.get("LapNumber", None)) else None,
+        "lap_time_sec": round(lt.total_seconds(), 4) if lt is not None and not pd.isna(lt) else None,
+        "lap_time_str": f"{int(lt.total_seconds()//60)}:{lt.total_seconds()%60:06.3f}" if lt is not None and not pd.isna(lt) else None,
+        "s1": round(s1.total_seconds(), 3) if s1 is not None and not pd.isna(s1) else None,
+        "s2": round(s2.total_seconds(), 3) if s2 is not None and not pd.isna(s2) else None,
+        "s3": round(s3.total_seconds(), 3) if s3 is not None and not pd.isna(s3) else None,
+        "compound": str(lap.get("Compound", "UNKNOWN")),
+        "tyre_life": int(lap.get("TyreLife", 0)) if not pd.isna(lap.get("TyreLife", None)) else None,
+        "is_personal_best": bool(lap.get("IsPersonalBest", False)),
+        "team": str(lap.get("Team", "")),
+    }
+
+
+def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: str, driver_a: str, driver_b: Optional[str] = None) -> dict:
     """
     Quant-Level Data Modeling:
     Load a session, extract fastest lap telemetry.
     If driver_b is provided, aligns their telemetry based on Distance using interpolation in Polars 
     and calculates speed delta between them.
-    If single driver, extracts baseline metrics.
+    Returns dict with 'telemetry' (list[dict]) and 'meta' (lap context for each driver).
     """
     try:
         # 使用 FastF1 加载 Session
@@ -32,7 +55,7 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
         logger.info(f"Successfully loaded FastF1 cache/session for {year} {grand_prix}.")
         
         # 获取第一位车手在指定 Session（如 'Q'）中的最快圈 (Fastest Lap)
-        lap_a = session.laps.pick_driver(driver_a).pick_fastest()
+        lap_a = session.laps.pick_drivers(driver_a).pick_fastest()
         if lap_a.empty:
             raise ValueError(f"Could not find valid fastest lap for {driver_a} in {year} {grand_prix}")
 
@@ -54,10 +77,20 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
                 "A_DRS": df_a.get_column("DRS").to_numpy()
             }).fill_nan(0).fill_null(0)
             
-            return baseline_df.to_dicts()
+            # Extract corner markers for distance axis annotation
+            try:
+                corners = get_corner_distances(year, grand_prix, session_type)
+            except Exception:
+                corners = []
+
+            return {
+                "meta": {"driver_a": _extract_lap_meta(lap_a, driver_a)},
+                "telemetry": baseline_df.to_dicts(),
+                "corners": corners
+            }
 
         # 双车手对比模式
-        lap_b = session.laps.pick_driver(driver_b).pick_fastest()
+        lap_b = session.laps.pick_drivers(driver_b).pick_fastest()
         if lap_b.empty:
             raise ValueError(f"Could not find valid fastest lap for {driver_b} in {year} {grand_prix}")
         
@@ -158,8 +191,20 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
         logger.info(f"Successfully extracted Polars DataFrame. Shape: ({aligned_df.height} rows, {aligned_df.width} columns)")
         logger.info(f"Interpolation & Quant Alignment complete for {driver_a} vs {driver_b}.")
 
-        # 返回 JSON 兼容的 List[Dict]
-        return aligned_df.to_dicts()
+        # Extract corner markers for distance axis annotation
+        try:
+            corners = get_corner_distances(year, grand_prix, session_type)
+        except Exception:
+            corners = []
+
+        return {
+            "meta": {
+                "driver_a": _extract_lap_meta(lap_a, driver_a),
+                "driver_b": _extract_lap_meta(lap_b, driver_b),
+            },
+            "telemetry": aligned_df.to_dicts(),
+            "corners": corners
+        }
 
     except Exception as e:
         logger.error(f"Telemetry comparison calculation failed: {str(e)}")

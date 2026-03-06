@@ -93,6 +93,77 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                     driver_a: widget.params[3],
                     driver_b: widget.params[4]
                 };
+            } else if (widget.type === 'RES') {
+                isPost = false;
+                const year = widget.params[0];
+                const prix = widget.params[1];
+                const session = widget.params[2];
+                queryUrl = `/api/v1/results?year=${year}&prix=${prix}&session=${session}`;
+            } else if (widget.type === 'DRIVERS') {
+                isPost = false;
+                const year = widget.params[0];
+                const prix = widget.params[1];
+                const session = widget.params[2];
+                queryUrl = `/api/v1/drivers?year=${year}&prix=${prix}&session=${session}`;
+            } else if (widget.type === 'SEC') {
+                endpoint = '/api/v1/sectors/compare';
+                payload = {
+                    year: parseInt(widget.params[0]),
+                    prix: widget.params[1],
+                    session: widget.params[2],
+                    driver_a: widget.params[3],
+                    driver_b: widget.params[4]
+                };
+            } else if (widget.type === 'QUAL') {
+                isPost = false;
+                const year = widget.params[0];
+                const prix = widget.params[1];
+                queryUrl = `/api/v1/qualifying/splits?year=${year}&prix=${prix}`;
+            } else if (widget.type === 'POS') {
+                isPost = false;
+                const year = widget.params[0];
+                const prix = widget.params[1];
+                const sess = widget.params[2] || 'R';
+                queryUrl = `/api/v1/position/chart?year=${year}&prix=${prix}&session=${sess}`;
+            } else if (widget.type === 'PITSTOP') {
+                isPost = false;
+                const year = widget.params[0];
+                const prix = widget.params[1];
+                const sess = widget.params[2] || 'R';
+                const driverParam = widget.params[3] ? `&driver=${widget.params[3]}` : '';
+                queryUrl = `/api/v1/pitstops?year=${year}&prix=${prix}&session=${sess}${driverParam}`;
+            } else if (widget.type === 'WDC') {
+                isPost = false;
+                const year = widget.params[0];
+                queryUrl = `/api/v1/standings/wdc?year=${year}`;
+            } else if (widget.type === 'WCC') {
+                isPost = false;
+                const year = widget.params[0];
+                queryUrl = `/api/v1/standings/wcc?year=${year}`;
+            } else if (widget.type === 'LAPS') {
+                isPost = false;
+                const year = widget.params[0];
+                const prix = widget.params[1];
+                const sess = widget.params[2] || 'R';
+                const driverParam = widget.params[3] ? `&driver=${widget.params[3]}` : '';
+                queryUrl = `/api/v1/laps?year=${year}&prix=${prix}&session=${sess}${driverParam}`;
+            } else if (widget.type === 'SCHEDULE') {
+                isPost = false;
+                queryUrl = '/api/v1/macro/schedule';
+            } else if (widget.type === 'PACE') {
+                // PACE 2024 BAH R VER,NOR,LEC
+                isPost = false;
+                const year = widget.params[0];
+                const prix = widget.params[1];
+                const sess = widget.params[2] || 'R';
+                const drivers = widget.params[3] || '';
+                queryUrl = `/api/v1/pace?year=${year}&prix=${prix}&session=${sess}&drivers=${drivers}`;
+            } else if (widget.type === 'CIRCUIT') {
+                isPost = false;
+                const year = widget.params[0];
+                const prix = widget.params[1];
+                const sess = widget.params[2] || 'R';
+                queryUrl = `/api/v1/circuit-info?year=${year}&prix=${prix}&session=${sess}`;
             } else {
                 throw new Error(`Widget type ${widget.type} logic missing.`);
             }
@@ -207,6 +278,80 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                     </div>
                 );
             }
+            case 'SEC': {
+                const secData = data as {
+                    driver_a: { driver: string; s1: number | null; s2: number | null; s3: number | null; lap_time: number | null; speed_i1: number | null; speed_i2: number | null; speed_fl: number | null; speed_st: number | null; compound: string; tyre_life: number | null };
+                    driver_b: { driver: string; s1: number | null; s2: number | null; s3: number | null; lap_time: number | null; speed_i1: number | null; speed_i2: number | null; speed_fl: number | null; speed_st: number | null; compound: string; tyre_life: number | null };
+                    deltas: Record<string, number | null>;
+                    sector_advantages: Record<string, string | null>;
+                };
+                if (!secData?.driver_a) return <span className="text-gray-500 font-mono text-xs p-4">No sector data</span>;
+                const fmtTime = (s: number | null) => s !== null ? s.toFixed(3) + 's' : '—';
+                const deltaColor = (d: number | null) => d === null ? 'text-gray-500' : d < 0 ? 'text-green-400' : d > 0 ? 'text-red-400' : 'text-gray-400';
+                const deltaSign = (d: number | null) => d === null ? '—' : d > 0 ? `+${d.toFixed(3)}` : d.toFixed(3);
+                return (
+                    <div className="w-full h-full overflow-auto bg-[#0a0a0a] font-mono text-[11px] p-3">
+                        <div className="text-[#00ff41] uppercase tracking-[0.15em] text-[10px] font-bold mb-3 border-b border-[#222] pb-2">
+                            ◆ SECTOR ANALYSIS — {secData.driver_a.driver} vs {secData.driver_b.driver}
+                        </div>
+                        <table className="w-full text-[11px]">
+                            <thead>
+                                <tr className="text-[#666] uppercase tracking-wider text-[9px] border-b border-[#222]">
+                                    <th className="py-1 text-left">Metric</th>
+                                    <th className="py-1 text-right">{secData.driver_a.driver}</th>
+                                    <th className="py-1 text-right">{secData.driver_b.driver}</th>
+                                    <th className="py-1 text-right">Delta</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(['s1', 's2', 's3', 'lap_time'] as const).map(key => {
+                                    const label = key === 'lap_time' ? 'LAP' : key.toUpperCase();
+                                    const dk = `delta_${key}`;
+                                    return (
+                                        <tr key={key} className="border-b border-[#111] hover:bg-[#111]">
+                                            <td className="py-1.5 text-[#888] font-bold">{label}</td>
+                                            <td className="py-1.5 text-right text-gray-300">{fmtTime(secData.driver_a[key])}</td>
+                                            <td className="py-1.5 text-right text-gray-300">{fmtTime(secData.driver_b[key])}</td>
+                                            <td className={`py-1.5 text-right font-bold ${deltaColor(secData.deltas[dk])}`}>{deltaSign(secData.deltas[dk])}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                        <div className="mt-4 text-[#00ff41] uppercase tracking-[0.15em] text-[10px] font-bold mb-2 border-b border-[#222] pb-2">
+                            ◆ SPEED TRAPS (km/h)
+                        </div>
+                        <table className="w-full text-[11px]">
+                            <thead>
+                                <tr className="text-[#666] uppercase tracking-wider text-[9px] border-b border-[#222]">
+                                    <th className="py-1 text-left">Trap</th>
+                                    <th className="py-1 text-right">{secData.driver_a.driver}</th>
+                                    <th className="py-1 text-right">{secData.driver_b.driver}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(['speed_i1', 'speed_i2', 'speed_fl', 'speed_st'] as const).map(key => {
+                                    const labels: Record<string, string> = { speed_i1: 'INT 1', speed_i2: 'INT 2', speed_fl: 'FINISH', speed_st: 'STRAIGHT' };
+                                    const va = secData.driver_a[key];
+                                    const vb = secData.driver_b[key];
+                                    const faster = va !== null && vb !== null ? (va > vb ? 'a' : va < vb ? 'b' : 'tie') : 'tie';
+                                    return (
+                                        <tr key={key} className="border-b border-[#111] hover:bg-[#111]">
+                                            <td className="py-1.5 text-[#888] font-bold">{labels[key]}</td>
+                                            <td className={`py-1.5 text-right ${faster === 'a' ? 'text-green-400 font-bold' : 'text-gray-300'}`}>{va ?? '—'}</td>
+                                            <td className={`py-1.5 text-right ${faster === 'b' ? 'text-green-400 font-bold' : 'text-gray-300'}`}>{vb ?? '—'}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                        <div className="mt-3 flex gap-4 text-[10px] text-[#555]">
+                            <span>{secData.driver_a.driver}: {secData.driver_a.compound} (Life: {secData.driver_a.tyre_life ?? '?'})</span>
+                            <span>{secData.driver_b.driver}: {secData.driver_b.compound} (Life: {secData.driver_b.tyre_life ?? '?'})</span>
+                        </div>
+                    </div>
+                );
+            }
             default:
                 return <span className="text-gray-500 font-mono text-xs text-center p-4">Unsupported Widget Type</span>;
         }
@@ -221,7 +366,19 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
         'DOM': 'Micro-Sector Dom',
         'INSIGHT': 'AI Insight',
         'WEATHER': 'Weather Logs',
-        'MSG': 'Race Control'
+        'MSG': 'Race Control',
+        'RES': 'Session Results',
+        'SEC': 'Sector Analysis',
+        'DRIVERS': 'Driver Grid',
+        'QUAL': 'Qualifying Splits',
+        'POS': 'Position Chart',
+        'PITSTOP': 'Pit Strategy',
+        'WDC': 'WDC Standings',
+        'WCC': 'WCC Standings',
+        'LAPS': 'Lap Table',
+        'SCHEDULE': 'Season Calendar',
+        'PACE': 'Multi-Driver Pace',
+        'CIRCUIT': 'Circuit Info',
     };
 
     return (

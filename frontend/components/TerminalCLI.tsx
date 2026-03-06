@@ -32,6 +32,12 @@ export default function TerminalCLI() {
             return;
         }
 
+        if (['CLEAR', 'CLS', 'RESET'].includes(trimmed)) {
+            useTerminalStore.getState().clearAll();
+            setInput("");
+            return;
+        }
+
         const originalParts = trimmed.split(/\s+/);
         const hasRawFlag = originalParts.includes('-R') || originalParts.includes('--RAW');
         const parts = originalParts.filter(p => p !== '-R' && p !== '--RAW');
@@ -74,6 +80,55 @@ export default function TerminalCLI() {
             else if (cmd === "MSG") {
                 const args = parts.slice(1);
                 addWidget('MSG', args, { x: 6, y: 0, w: 6, h: 10, minW: 2, minH: 3 }, 'raw'); // Messages defaults to raw table
+            }
+            else if (cmd === "RES") {
+                const args = parts.slice(1);
+                addWidget('RES', args, { x: 0, y: 0, w: 12, h: 12, minW: 4, minH: 4 }, 'raw');
+            }
+            else if (cmd === "SEC") {
+                const args = parts.slice(1);
+                addWidget('SEC', args, { x: 0, y: 0, w: 6, h: 10, minW: 3, minH: 4 }, viewMode);
+            }
+            else if (cmd === "DRIVERS") {
+                const args = parts.slice(1);
+                addWidget('DRIVERS', args, { x: 0, y: 0, w: 6, h: 10, minW: 2, minH: 3 }, 'raw');
+            }
+            else if (cmd === "QUAL") {
+                const args = parts.slice(1);
+                addWidget('QUAL', args, { x: 0, y: 0, w: 12, h: 14, minW: 4, minH: 5 }, 'raw');
+            }
+            else if (cmd === "POS") {
+                const args = parts.slice(1);
+                addWidget('POS', args, { x: 0, y: 0, w: 12, h: 12, minW: 4, minH: 4 }, 'raw');
+            }
+            else if (cmd === "PITSTOP" || cmd === "PIT") {
+                const args = parts.slice(1);
+                addWidget('PITSTOP', args, { x: 0, y: 0, w: 8, h: 10, minW: 3, minH: 4 }, 'raw');
+            }
+            else if (cmd === "WDC") {
+                const args = parts.slice(1);
+                addWidget('WDC', args, { x: 0, y: 0, w: 8, h: 12, minW: 3, minH: 4 }, 'raw');
+            }
+            else if (cmd === "WCC") {
+                const args = parts.slice(1);
+                addWidget('WCC', args, { x: 0, y: 0, w: 8, h: 10, minW: 3, minH: 4 }, 'raw');
+            }
+            else if (cmd === "LAPS") {
+                const args = parts.slice(1);
+                addWidget('LAPS', args, { x: 0, y: 0, w: 12, h: 14, minW: 4, minH: 5 }, 'raw');
+            }
+            else if (cmd === "SCHEDULE" || cmd === "CAL") {
+                const args = parts.slice(1);
+                addWidget('SCHEDULE', args, { x: 0, y: 0, w: 10, h: 12, minW: 4, minH: 4 }, 'raw');
+            }
+            else if (cmd === "PACE") {
+                // PACE 2024 BAH R VER,NOR,LEC
+                const args = parts.slice(1);
+                addWidget('PACE', args, { x: 0, y: 0, w: 12, h: 12, minW: 6, minH: 5 }, 'raw');
+            }
+            else if (cmd === "CIRCUIT") {
+                const args = parts.slice(1);
+                addWidget('CIRCUIT', args, { x: 0, y: 0, w: 8, h: 10, minW: 3, minH: 4 }, 'raw');
             }
             else {
                 console.warn(`[TERMINAL] Unknown command: ${cmd}`);
