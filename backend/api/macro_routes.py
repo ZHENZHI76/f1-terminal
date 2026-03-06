@@ -213,3 +213,105 @@ def get_full_schedule():
     except Exception as e:
         logger.error(f"API Error in macro schedule fetch: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error fetching season schedule.")
+
+
+# ─── Live Glossary: GP Calendar + Driver Grid + Team Colors ──────────────────
+# Build a reverse map from full country name → our 3-letter code
+_COUNTRY_TO_CODE = {
+    "Bahrain": "BAH", "Saudi Arabia": "SAU", "Australia": "AUS", "Japan": "JPN",
+    "China": "CHN", "United States": "USA", "Italy": "ITA", "Monaco": "MON",
+    "Canada": "CAN", "Spain": "ESP", "Austria": "AUT", "Great Britain": "GBR",
+    "Hungary": "HUN", "Belgium": "BEL", "Netherlands": "NED", "Azerbaijan": "AZE",
+    "Singapore": "SGP", "Mexico": "MEX", "Brazil": "BRA", "Qatar": "QAT",
+    "United Arab Emirates": "ABU",
+}
+
+@router.get("/macro/glossary")
+def live_glossary():
+    """
+    Dynamic HELP glossary: current-year GP calendar + driver grid with team colors.
+    Used by the CommandReferenceModal to show live data instead of hardcoded 2024 lists.
+    """
+    try:
+        current_year = datetime.now().year
+        schedule = fastf1.get_event_schedule(current_year)
+        schedule = schedule[schedule['RoundNumber'] > 0]
+
+        # ─── GP Calendar ─────────────────────────────────────────────
+        gp_list = []
+        for _, event in schedule.iterrows():
+            country = str(event.get('Country', ''))
+            event_name = str(event.get('EventName', ''))
+            location = str(event.get('Location', 'N/A'))
+
+            # Derive 3-letter code
+            code = _COUNTRY_TO_CODE.get(country, '')
+            if not code:
+                # Try event name keywords
+                en = event_name.upper()
+                if 'MIAMI' in en: code = 'MIA'
+                elif 'EMILIA' in en or 'IMOLA' in en: code = 'EMI'
+                elif 'LAS VEGAS' in en: code = 'LAS'
+                elif 'SÃO PAULO' in en or 'SAO PAULO' in en: code = 'BRA'
+                else: code = country[:3].upper()
+
+            gp_list.append({
+                "abbr": code,
+                "full": country or event_name,
+                "description": f"{event_name}, {location}" if location != 'N/A' else event_name,
+                "round": int(event.get('RoundNumber', 0)),
+            })
+
+        # ─── Driver Grid (from latest available session) ─────────────
+        driver_list = []
+        try:
+            # Find the most recently completed session to get driver data
+            now = datetime.now(timezone.utc)
+            last_session = None
+            for _, event in schedule.iterrows():
+                for col_name, col_date in [("Session5", "Session5DateUtc"), ("Session4", "Session4DateUtc"),
+                                           ("Session3", "Session3DateUtc"),("Session2", "Session2DateUtc"),
+                                           ("Session1", "Session1DateUtc")]:
+                    try:
+                        sdate = pd.Timestamp(event.get(col_date))
+                        if pd.notna(sdate) and sdate.tz_localize('UTC') if sdate.tzinfo is None else sdate < pd.Timestamp(now):
+                            last_session = (current_year, event.get('EventName', ''), event.get(col_name, ''))
+                    except Exception:
+                        continue
+                if last_session:
+                    break
+
+            if last_session:
+                sess = fastf1.get_session(*last_session)
+                sess.load(laps=False, telemetry=False, weather=False, messages=False)
+                results = sess.results
+                if results is not None and len(results) > 0:
+                    for _, drv in results.iterrows():
+                        abbr = str(drv.get('Abbreviation', ''))
+                        full_name = f"{drv.get('FirstName', '')} {drv.get('LastName', '')}".strip()
+                        team = str(drv.get('TeamName', ''))
+                        color = str(drv.get('TeamColor', '333333'))
+                        if not color.startswith('#'):
+                            color = f"#{color}"
+                        number = str(drv.get('DriverNumber', ''))
+                        driver_list.append({
+                            "abbr": abbr,
+                            "full": full_name,
+                            "description": team,
+                            "teamColor": color,
+                            "number": number,
+                        })
+        except Exception as driver_err:
+            logger.warning(f"Could not load live driver grid: {driver_err}")
+
+        return {
+            "status": "success",
+            "year": current_year,
+            "gp_calendar": gp_list,
+            "drivers": driver_list,
+        }
+
+    except Exception as e:
+        logger.error(f"API Error in live glossary: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch live glossary data.")
+
