@@ -381,34 +381,44 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
         'CIRCUIT': 'Circuit Info',
     };
 
+    // Build data source label like Bloomberg: "2024 BAH Q · VER vs NOR"
+    const buildSource = () => {
+        const p = widget.params;
+        const parts: string[] = [];
+        if (p[0]) parts.push(p[0]); // year
+        if (p[1]) parts.push(p[1]); // GP
+        if (p[2]) parts.push(p[2]); // session
+        const source = parts.join(' ');
+        const drivers = p.slice(3).filter(Boolean).join(' vs ');
+        if (drivers) return `${source} · ${drivers}`;
+        return source;
+    };
+
     return (
-        <div className="flex flex-col h-full bg-[#050505] border border-[#222]">
-            {/* Header / Drag Handle */}
-            <div className="drag-handle w-full bg-[#111] border-b border-[#333] flex justify-between items-center px-2 py-1 cursor-move select-none">
-                <div className="flex space-x-2 items-baseline">
-                    <span className="text-[10px] text-gray-500 uppercase tracking-widest font-mono font-bold">
-                        [{widget.id.split('-')[1].slice(-4)}]
+        <div className="flex flex-col h-full bg-[#101010] border border-[#2a2a2a]">
+            {/* Header / Drag Handle — Bloomberg style */}
+            <div className="drag-handle w-full bg-[#1a1a1a] border-b border-[#2a2a2a] flex justify-between items-center px-2.5 py-1.5 cursor-move select-none">
+                <div className="flex items-center space-x-2 overflow-hidden min-w-0">
+                    <span className="text-[11px] text-[#ff6600] font-mono font-bold uppercase tracking-wide shrink-0">
+                        {WIDGET_TITLES[widget.type] || widget.type}
                     </span>
-                    <span className="text-[11px] text-[#ccc] font-mono tracking-wider font-bold uppercase truncate max-w-[150px]">
-                        {WIDGET_TITLES[widget.type] || 'WIDGET'}
-                    </span>
-                    <span className="text-[9px] text-[#555] font-mono truncate hidden lg:inline">
-                        {widget.params.join(" ")}
+                    <span className="text-[10px] text-[#777] font-mono truncate">
+                        {buildSource()}
                     </span>
                 </div>
 
-                <div className="flex space-x-2">
+                <div className="flex items-center space-x-1.5 shrink-0 ml-2">
                     <button
                         onClick={(e) => { e.stopPropagation(); fetchData(); }}
-                        className="text-[#666] hover:text-white transition-colors"
-                        title="Refresh Query"
+                        className="text-[#555] hover:text-[#ff6600] transition-colors p-0.5"
+                        title="Refresh"
                     >
                         <RefreshCw className="w-3 h-3" />
                     </button>
                     <button
                         onClick={() => removeWidget(widget.id)}
-                        className="text-[#666] hover:text-neon-ferrari-red transition-colors"
-                        title="Close Panel"
+                        className="text-[#555] hover:text-[#cc3333] transition-colors p-0.5"
+                        title="Close"
                     >
                         <X className="w-3.5 h-3.5" />
                     </button>

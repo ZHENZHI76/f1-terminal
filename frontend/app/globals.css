@@ -4,13 +4,20 @@
 @import 'react-resizable/css/styles.css';
 
 @theme {
-  --color-background: #000000;
-  --color-foreground: #ffffff;
-  --color-neon-ferrari-red: #ff2800;
-  --color-neon-redbull-blue: #0600ef;
-  --color-neon-mclaren-orange: #ff8000;
-  --color-neon-mercedes-silver: #00d2be;
-  --color-neon-aston-green: #006f62;
+  /* ─── Bloomberg Terminal Palette ────────────────────────────────── */
+  --color-background: #0a0a0a;
+  --color-foreground: #d4d4d4;
+  --color-bb-orange: #ff6600;
+  --color-bb-amber: #ff9900;
+  --color-bb-red: #cc3333;
+  --color-bb-green: #33cc66;
+  --color-bb-blue: #3399cc;
+  --color-bb-white: #e0e0e0;
+  --color-bb-muted: #888888;
+  --color-bb-dim: #555555;
+  --color-bb-border: #2a2a2a;
+  --color-bb-surface: #141414;
+  --color-bb-header: #1a1a1a;
 }
 
 @layer base {
@@ -22,57 +29,49 @@
 
 /* ==========================================
    Bloomberg Terminal Grid Background
-   Subtle dot-matrix pattern for spatial orientation
    ========================================== */
 .bloomberg-grid-bg {
-  background-color: #050505;
-  background-image:
-    radial-gradient(circle, #1a1a1a 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-color: #0a0a0a;
 }
 
 /* ==========================================
    React-Grid-Layout Panel Styling
    ========================================== */
 .react-grid-item {
-  background: #0a0a0a;
-  border: 1px solid #222;
-  border-radius: 2px;
-  transition: box-shadow 0.15s ease;
+  background: #101010;
+  border: 1px solid #2a2a2a;
+  border-radius: 1px;
+  transition: border-color 0.15s ease;
 }
 
 .react-grid-item:hover {
-  border-color: #333;
-  box-shadow: 0 0 12px rgba(0, 255, 65, 0.03);
+  border-color: #3a3a3a;
 }
 
-/* Active drag state */
+/* Active drag state — Bloomberg orange */
 .react-grid-item.react-draggable-dragging {
-  border-color: #00ff41 !important;
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.08);
+  border-color: #ff6600 !important;
+  box-shadow: 0 0 12px rgba(255, 102, 0, 0.08);
   opacity: 0.9;
   z-index: 100;
 }
 
 /* Resize active state */
 .react-grid-item.resizing {
-  border-color: #ff8000 !important;
-  box-shadow: 0 0 16px rgba(255, 128, 0, 0.1);
+  border-color: #ff9900 !important;
 }
 
 /* Drop placeholder */
 .react-grid-item.react-grid-placeholder {
-  background: #00ff41;
-  opacity: 0.06;
-  border: 1px dashed #00ff41;
-  border-radius: 2px;
+  background: #ff6600;
+  opacity: 0.04;
+  border: 1px dashed #ff6600;
+  border-radius: 1px;
 }
 
 /* ==========================================
    Multi-directional Resize Handles
    ========================================== */
-
-/* Base reset for all handles */
 .react-resizable-handle {
   position: absolute;
   z-index: 10;
@@ -81,7 +80,6 @@
   background-image: none !important;
 }
 
-/* South (bottom edge) */
 .react-resizable-handle-s {
   bottom: 0;
   left: 8px;
@@ -90,7 +88,6 @@
   cursor: s-resize;
 }
 
-/* East (right edge) */
 .react-resizable-handle-e {
   top: 8px;
   right: 0;
@@ -99,7 +96,6 @@
   cursor: e-resize;
 }
 
-/* West (left edge) */
 .react-resizable-handle-w {
   top: 8px;
   left: 0;
@@ -108,7 +104,6 @@
   cursor: w-resize;
 }
 
-/* South-East corner */
 .react-resizable-handle-se {
   bottom: 0;
   right: 0;
@@ -133,7 +128,6 @@
   border-bottom-color: #555;
 }
 
-/* South-West corner */
 .react-resizable-handle-sw {
   bottom: 0;
   left: 0;
@@ -158,14 +152,13 @@
   border-bottom-color: #555;
 }
 
-/* Show edge handles on hover only (subtle) */
 .react-grid-item:hover .react-resizable-handle-s,
 .react-grid-item:hover .react-resizable-handle-e,
 .react-grid-item:hover .react-resizable-handle-w {
-  background: linear-gradient(to right, transparent, rgba(51, 51, 51, 0.5), transparent);
+  background: linear-gradient(to right, transparent, rgba(51, 51, 51, 0.3), transparent);
 }
 
 .react-grid-item:hover .react-resizable-handle-e,
 .react-grid-item:hover .react-resizable-handle-w {
-  background: linear-gradient(to bottom, transparent, rgba(51, 51, 51, 0.5), transparent);
+  background: linear-gradient(to bottom, transparent, rgba(51, 51, 51, 0.3), transparent);
 }

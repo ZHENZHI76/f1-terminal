@@ -84,12 +84,12 @@ export default function TickerBar() {
 
     // Session type color coding
     const getSessionColor = (session: string) => {
-        if (!session) return 'text-gray-400';
+        if (!session) return 'text-[#888]';
         const s = session.toUpperCase();
-        if (s === 'RACE') return 'text-[#e10600]';           // Ferrari Red for Race
-        if (s.includes('QUALIFYING') || s.includes('QUAL')) return 'text-[#ff8000]';  // Orange for Qualifying
-        if (s.includes('SPRINT')) return 'text-[#00d2ff]';    // Cyan for Sprint
-        if (s.includes('PRACTICE') || s.includes('FP')) return 'text-[#00ff41]';     // Green for Practice
+        if (s === 'RACE') return 'text-[#ff6600]';
+        if (s.includes('QUALIFYING') || s.includes('QUAL')) return 'text-[#ff9900]';
+        if (s.includes('SPRINT')) return 'text-[#3399cc]';
+        if (s.includes('PRACTICE') || s.includes('FP')) return 'text-[#33cc66]';
         return 'text-[#ccc]';
     };
 
@@ -100,11 +100,11 @@ export default function TickerBar() {
     };
 
     return (
-        <div className="w-full h-8 bg-[#050505] border-b border-[#222] flex items-center px-4 overflow-hidden shadow-md fixed top-0 left-0 z-50">
-            {/* System Status Indicator */}
+        <div className="w-full h-8 bg-[#0e0e0e] border-b border-[#222] flex items-center px-4 overflow-hidden fixed top-0 left-0 z-50">
+            {/* Status */}
             <div className="flex items-center space-x-2 mr-4 shrink-0">
-                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-[#00ff41] animate-pulse shadow-[0_0_8px_#00ff41]' : 'bg-[#ff2800]'} `} />
-                <span className={`text-[10px] font-mono font-bold tracking-widest ${isOnline ? 'text-[#00ff41]' : 'text-[#ff2800]'}`}>
+                <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-[#33cc66]' : 'bg-[#cc3333]'} `} />
+                <span className={`text-[10px] font-mono font-bold tracking-widest ${isOnline ? 'text-[#33cc66]' : 'text-[#cc3333]'}`}>
                     {isOnline ? 'LIVE' : 'OFFLINE'}
                 </span>
             </div>
@@ -137,8 +137,8 @@ export default function TickerBar() {
                 <span className="text-gray-700 font-bold">│</span>
 
                 {/* Countdown */}
-                <span className="text-gray-500 font-mono text-[11px] font-light">
-                    T- <span className="text-[#ff2800] font-bold text-[12px] tabular-nums">{countdownFormatted}</span>
+                <span className="text-[#666] font-mono text-[11px] font-light">
+                    T- <span className="text-[#ff6600] font-bold text-[12px] tabular-nums">{countdownFormatted}</span>
                 </span>
 
                 <span className="text-gray-700 font-bold hidden md:inline">│</span>
@@ -146,11 +146,11 @@ export default function TickerBar() {
                 {/* Weather */}
                 <span className="text-gray-500 font-mono text-[11px] font-light hidden md:inline">
                     {getWeatherIcon()}{' '}
-                    <span className="text-yellow-500 font-bold">
+                    <span className="text-[#ff9900] font-bold">
                         T:{macroData?.TrackTemp || '--'}
                     </span>
-                    <span className="text-gray-500 mx-1">/</span>
-                    <span className="text-sky-400 font-bold">
+                    <span className="text-[#555] mx-1">/</span>
+                    <span className="text-[#999] font-bold">
                         A:{macroData?.AirTemp || '--'}
                     </span>
                     {macroData?.Humidity && macroData.Humidity !== 'N/A' && (

@@ -74,7 +74,7 @@ export default function CommandReferenceModal({ isOpen, onClose, onFillCommand }
                     <tbody>
                         {entries.map((e, i) => (
                             <tr key={i} className="border-b border-[#111] hover:bg-[#151515] transition-colors">
-                                <td className="py-1.5 text-[#00ff41] font-bold">{e.abbr}</td>
+                                <td className="py-1.5 text-[#ff6600] font-bold">{e.abbr}</td>
                                 <td className="py-1.5 text-[#ccc]">{e.full}</td>
                                 <td className="py-1.5 text-[#777]">{e.description}</td>
                             </tr>
@@ -100,13 +100,13 @@ export default function CommandReferenceModal({ isOpen, onClose, onFillCommand }
                     <div className="flex items-center space-x-2">
                         <button
                             onClick={toggleLang}
-                            className="text-[#888] hover:text-[#00ff41] border border-[#333] hover:border-[#00ff41] px-2 py-1 text-[10px] tracking-widest transition-colors"
+                            className="text-[#888] hover:text-[#ff6600] border border-[#333] hover:border-[#ff6600] px-2 py-1 text-[10px] tracking-widest transition-colors"
                         >
                             {lang === 'EN' ? '中文' : 'EN'}
                         </button>
                         <button
                             onClick={onClose}
-                            className="text-neon-ferrari-red hover:text-white border border-neon-ferrari-red px-3 py-1 text-xs transition-colors shrink-0"
+                            className="text-[#cc3333] hover:text-white border border-[#cc3333] px-3 py-1 text-xs transition-colors shrink-0"
                         >
                             [ ESC ] {t('CLOSE', '关闭')}
                         </button>
@@ -120,7 +120,7 @@ export default function CommandReferenceModal({ isOpen, onClose, onFillCommand }
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`px-3 md:px-5 py-2.5 text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all border-b-2 ${activeTab === tab.id
-                                ? 'text-[#00ff41] border-[#00ff41] bg-[#111]'
+                                ? 'text-[#ff6600] border-[#ff6600] bg-[#111]'
                                 : 'text-[#555] border-transparent hover:text-[#888] hover:border-[#333]'
                                 }`}
                         >
@@ -141,8 +141,8 @@ export default function CommandReferenceModal({ isOpen, onClose, onFillCommand }
                                     'F1 Terminal is driven entirely by CLI commands. Type any command below into the terminal.',
                                     'F1 终端完全由 CLI 命令驱动。将下方任意命令输入终端即可执行。'
                                 )}
-                                {' '}{t('Click', '点击')} <span className="text-neon-mclaren-papaya">EXEC</span> {t('to auto-fill.', '自动填充。')}
-                                {' '}{t('Append', '追加')} <span className="text-neon-aston-green">-R</span> {t('to supported commands for raw data table output.', '到支持的命令后面以获取原始数据表输出。')}
+                                {' '}{t('Click', '点击')} <span className="text-[#ff6600]">EXEC</span> {t('to auto-fill.', '自动填充。')}
+                                {' '}{t('Append', '追加')} <span className="text-[#33cc66]">-R</span> {t('to supported commands for raw data table output.', '到支持的命令后面以获取原始数据表输出。')}
                             </p>
 
                             <div className="hidden md:grid grid-cols-12 gap-4 pb-2 border-b border-[#333] mb-4 text-[#555] font-bold text-xs uppercase tracking-wider">
@@ -154,16 +154,16 @@ export default function CommandReferenceModal({ isOpen, onClose, onFillCommand }
                             <div className="space-y-6 md:space-y-8">
                                 {categories.map((cat, idx) => (
                                     <div key={idx} className="bg-[#0a0a0a] border border-[#222] p-4 rounded-sm">
-                                        <h3 className="text-neon-williams-blue font-bold tracking-widest uppercase mb-4 text-xs border-b border-[#333] pb-2">
+                                        <h3 className="text-[#3399cc] font-bold tracking-widest uppercase mb-4 text-xs border-b border-[#333] pb-2">
                                             // {cat}
                                         </h3>
                                         <div className="space-y-3">
                                             {COMMAND_REGISTRY.filter(c => c.category === cat).map((c, i) => (
-                                                <div key={i} className="md:grid md:grid-cols-12 md:gap-4 items-start hover:bg-[#151515] p-2 transition-colors duration-150 border-l-2 border-transparent hover:border-neon-mclaren-papaya">
+                                                <div key={i} className="md:grid md:grid-cols-12 md:gap-4 items-start hover:bg-[#151515] p-2 transition-colors duration-150 border-l-2 border-transparent hover:border-[#ff6600]">
                                                     <div className="col-span-3 mb-1 md:mb-0 break-words flex flex-col">
-                                                        <span className="text-[#00ff41] text-xs font-bold leading-tight">{c.command} {c.args.join(" ")}</span>
+                                                        <span className="text-[#ff6600] text-xs font-bold leading-tight">{c.command} {c.args.join(" ")}</span>
                                                         {c.supportsRaw && (
-                                                            <span className="text-[10px] text-neon-aston-green mt-1 bg-[#111] w-max px-1 border border-[#222]">[-R / --RAW] SUPPORTED</span>
+                                                            <span className="text-[10px] text-[#33cc66] mt-1 bg-[#111] w-max px-1 border border-[#222]">[-R / --RAW] SUPPORTED</span>
                                                         )}
                                                     </div>
                                                     <div className="col-span-6 text-xs text-[#888] mb-3 md:mb-0 pr-4 leading-relaxed flex flex-col gap-1">
@@ -175,11 +175,11 @@ export default function CommandReferenceModal({ isOpen, onClose, onFillCommand }
                                                     <div className="col-span-3 flex flex-col gap-1">
                                                         <button
                                                             onClick={() => handleQuickFill(c.example)}
-                                                            className="w-full text-left bg-[#111] hover:bg-[#222] border border-[#333] hover:border-neon-mclaren-papaya text-[#ccc] hover:text-white px-3 py-2 transition-all rounded-sm text-[11px] font-bold tracking-wide flex justify-between items-center group shadow-sm"
+                                                            className="w-full text-left bg-[#111] hover:bg-[#222] border border-[#333] hover:border-[#ff6600] text-[#ccc] hover:text-white px-3 py-2 transition-all rounded-sm text-[11px] font-bold tracking-wide flex justify-between items-center group shadow-sm"
                                                             title="Click to auto-fill into terminal"
                                                         >
                                                             <span className="truncate mr-2">&gt; {c.example}</span>
-                                                            <span className="opacity-0 group-hover:opacity-100 text-neon-mclaren-papaya transition-opacity">EXEC</span>
+                                                            <span className="opacity-0 group-hover:opacity-100 text-[#ff6600] transition-opacity">EXEC</span>
                                                         </button>
                                                         {c.examples && c.examples.length > 1 && (
                                                             <div className="flex flex-wrap gap-1">
@@ -209,12 +209,12 @@ export default function CommandReferenceModal({ isOpen, onClose, onFillCommand }
                     {activeTab === 'sessions' && (
                         <>
                             <div className="mb-6 bg-[#0a0a0a] border border-[#222] p-4 rounded-sm">
-                                <h3 className="text-neon-williams-blue font-bold tracking-widest uppercase mb-3 text-xs border-b border-[#333] pb-2">
+                                <h3 className="text-[#3399cc] font-bold tracking-widest uppercase mb-3 text-xs border-b border-[#333] pb-2">
                                     // {t('WEEKEND FORMAT GUIDE', '比赛周末格式指南')}
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px]">
                                     <div>
-                                        <span className="text-[#00ff41] font-bold block mb-2">◆ {t('CONVENTIONAL WEEKEND', '传统赛制周末')}</span>
+                                        <span className="text-[#ff6600] font-bold block mb-2">◆ {t('CONVENTIONAL WEEKEND', '传统赛制周末')}</span>
                                         <div className="text-[#777] space-y-1 ml-2">
                                             <div><span className="text-[#ccc]">FRI</span> → FP1, FP2</div>
                                             <div><span className="text-[#ccc]">SAT</span> → FP3, Q (Q1→Q2→Q3)</div>

@@ -141,16 +141,16 @@ export default function TerminalCLI() {
     };
 
     return (
-        <div className="flex flex-col flex-none w-full sticky top-0 z-50 shadow-lg">
-            <div className="w-full bg-[#0a0a0a] border-b border-[#333] p-2 md:p-3 flex items-center">
-                <Terminal className="text-[#00ff00] w-4 h-4 md:w-5 md:h-5 mr-3 flex-shrink-0" />
-                <span className="text-[#00ff00] font-mono mr-2 text-sm md:text-base opacity-70">F1&gt;</span>
+        <div className="flex flex-col flex-none w-full sticky top-0 z-50">
+            <div className="w-full bg-[#141414] border-b border-[#2a2a2a] p-2 md:p-3 flex items-center">
+                <Terminal className="text-[#ff6600] w-4 h-4 md:w-5 md:h-5 mr-3 flex-shrink-0" />
+                <span className="text-[#ff6600] font-mono mr-2 text-sm md:text-base font-bold">F1&gt;</span>
                 <form onSubmit={handleSubmit} className="flex-1 flex">
                     <input
                         ref={inputRef}
                         type="text"
-                        className="flex-1 bg-transparent text-[#00ff00] font-mono text-sm md:text-base uppercase outline-none placeholder-[#333] tracking-wider truncate"
-                        placeholder="TYPE 'HELP' FOR THE COMMAND MATRIX..."
+                        className="flex-1 bg-transparent text-[#e0e0e0] font-mono text-sm md:text-base uppercase outline-none placeholder-[#444] tracking-wider truncate"
+                        placeholder="TYPE 'HELP' FOR COMMAND REFERENCE..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         spellCheck={false}
@@ -159,10 +159,10 @@ export default function TerminalCLI() {
                 </form>
             </div>
 
-            {/* Global Ticker Bar (Responsive text sizing) */}
-            <div className="w-full bg-[#111] text-[#888] px-3 py-1 text-[10px] md:text-xs font-mono uppercase tracking-wider flex justify-between border-b border-[#222]">
-                <div className="truncate">SYSTEM <span className="text-[#00ff00]">ONLINE</span> | CACHE <span className="text-[#00ff00]">SECURED</span> | QUANT ENGINE <span className="text-neon-mercedes-silver">v3.8.1</span></div>
-                <div className="hidden sm:block shrink-0 ml-4 opacity-50">&lt; USE DOCS OR ? FOR SYNTAX &gt;</div>
+            {/* Status Bar */}
+            <div className="w-full bg-[#1a1a1a] text-[#666] px-3 py-1 text-[10px] md:text-xs font-mono uppercase tracking-wider flex justify-between border-b border-[#222]">
+                <div className="truncate">SYSTEM <span className="text-[#33cc66]">ONLINE</span> | CACHE <span className="text-[#33cc66]">SECURED</span> | QUANT ENGINE <span className="text-[#ff6600]">V3.8.1</span></div>
+                <div className="hidden sm:block shrink-0 ml-4 text-[#444]">WORKSPACE · LIVE</div>
             </div>
 
             <CommandReferenceModal
