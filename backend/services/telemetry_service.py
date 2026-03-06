@@ -16,6 +16,7 @@ fastf1.Cache.enable_cache(CACHE_DIR)
 
 from typing import Optional
 from services.circuit_info_service import get_corner_distances
+from utils.gp_codes import resolve_gp_name
 
 def _extract_lap_meta(lap, driver: str) -> dict:
     """Extract metadata from a lap for context display."""
@@ -50,7 +51,7 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
     try:
         # 使用 FastF1 加载 Session
         logger.info(f"Initiating FastF1 data fetch for {year} {grand_prix} ({session_type})... (This may take a while on first run)")
-        session = fastf1.get_session(year, grand_prix, session_type)
+        session = fastf1.get_session(year, resolve_gp_name(grand_prix), session_type)
         session.load(telemetry=True, laps=True, weather=False)
         logger.info(f"Successfully loaded FastF1 cache/session for {year} {grand_prix}.")
         

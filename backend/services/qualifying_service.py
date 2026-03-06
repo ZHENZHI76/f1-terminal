@@ -2,6 +2,7 @@ import os
 import fastf1
 import logging
 import math
+from utils.gp_codes import resolve_gp_name
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ def get_qualifying_splits(year: int, grand_prix: str) -> dict:
     """
     try:
         logger.info(f"Qualifying split analysis: {year} {grand_prix}")
-        session = fastf1.get_session(year, grand_prix, 'Q')
+        session = fastf1.get_session(year, resolve_gp_name(grand_prix), 'Q')
         session.load(laps=True, telemetry=False, weather=False, messages=False)
 
         q1, q2, q3 = session.laps.split_qualifying_sessions()

@@ -9,6 +9,7 @@ import numpy as np
 from scipy.stats import linregress
 import logging
 from utils.converters import safe_int
+from utils.gp_codes import resolve_gp_name
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ def get_multi_driver_pace(year: int, grand_prix: str, session_type: str,
     """
     try:
         logger.info(f"Multi-driver pace: {', '.join(drivers)} @ {year} {grand_prix} ({session_type})")
-        session = fastf1.get_session(year, grand_prix, session_type)
+        session = fastf1.get_session(year, resolve_gp_name(grand_prix), session_type)
         session.load(laps=True, telemetry=False, weather=False, messages=False)
 
         FUEL_CORRECTION_PER_LAP = 0.027  # ~1.8 kg/lap × ~0.015 s/kg

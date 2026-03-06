@@ -2,6 +2,7 @@ import os
 import fastf1
 import logging
 import math
+from utils.gp_codes import resolve_gp_name
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ def get_pitstop_analysis(year: int, grand_prix: str, session_type: str, driver: 
     """
     try:
         logger.info(f"Pit stop analysis: {year} {grand_prix} ({session_type})" + (f" Driver: {driver}" if driver else ""))
-        session = fastf1.get_session(year, grand_prix, session_type)
+        session = fastf1.get_session(year, resolve_gp_name(grand_prix), session_type)
         session.load(laps=True, telemetry=False, weather=False, messages=False)
 
         laps = session.laps

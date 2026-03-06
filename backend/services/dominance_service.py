@@ -2,6 +2,7 @@ import fastf1
 import polars as pl
 import numpy as np
 import logging
+from utils.gp_codes import resolve_gp_name
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,7 @@ def get_dominance_map(year: int, grand_prix: str, session_type: str, driver_a: s
     """
     try:
         logger.info(f"Extracting Geospatial Dominance telemetry for {driver_a} vs {driver_b} in {year} {grand_prix}")
-        session = fastf1.get_session(year, grand_prix, session_type)
+        session = fastf1.get_session(year, resolve_gp_name(grand_prix), session_type)
         session.load(telemetry=True, laps=True, weather=False)
         
         lap_a = session.laps.pick_drivers(driver_a).pick_fastest()

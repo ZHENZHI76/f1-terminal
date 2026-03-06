@@ -1,6 +1,7 @@
 import os
 import fastf1
 import logging
+from utils.gp_codes import resolve_gp_name
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ def get_session_results(year: int, grand_prix: str, session_type: str) -> list[d
     """
     try:
         logger.info(f"Fetching session results for {year} {grand_prix} ({session_type})")
-        session = fastf1.get_session(year, grand_prix, session_type)
+        session = fastf1.get_session(year, resolve_gp_name(grand_prix), session_type)
         session.load(laps=False, telemetry=False, weather=False, messages=False)
 
         results = session.results
@@ -61,7 +62,7 @@ def get_driver_list(year: int, grand_prix: str, session_type: str) -> list[dict]
     Extract compact driver listing: abbreviation, number, team, team color.
     """
     try:
-        session = fastf1.get_session(year, grand_prix, session_type)
+        session = fastf1.get_session(year, resolve_gp_name(grand_prix), session_type)
         session.load(laps=False, telemetry=False, weather=False, messages=False)
 
         results = session.results

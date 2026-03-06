@@ -3,6 +3,7 @@ import polars as pl
 import numpy as np
 import logging
 from services.circuit_info_service import get_circuit_info
+from utils.gp_codes import resolve_gp_name
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ def get_track_map_telemetry(year: int, grand_prix: str, session_type: str,
     """
     try:
         logger.info(f"Extracting Geospatial Track Map telemetry for {driver} in {year} {grand_prix} ({session_type})")
-        session = fastf1.get_session(year, grand_prix, session_type)
+        session = fastf1.get_session(year, resolve_gp_name(grand_prix), session_type)
         session.load(telemetry=True, laps=True, weather=False)
         
         lap = session.laps.pick_drivers(driver).pick_fastest()

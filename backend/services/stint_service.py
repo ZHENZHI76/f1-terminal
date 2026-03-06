@@ -4,6 +4,7 @@ import polars as pl
 import numpy as np
 from scipy.stats import linregress
 import logging
+from utils.gp_codes import resolve_gp_name
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ def get_stint_analysis(year: int, grand_prix: str, session_type: str, driver: st
     """
     try:
         logger.info(f"Initiating FastF1 Stint Analysis fetch for {year} {grand_prix} ({session_type}) Driver: {driver}")
-        session = fastf1.get_session(year, grand_prix, session_type)
+        session = fastf1.get_session(year, resolve_gp_name(grand_prix), session_type)
         session.load(telemetry=False, laps=True, weather=False)
         
         # 1. Load laps for driver

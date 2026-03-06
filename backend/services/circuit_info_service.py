@@ -7,6 +7,7 @@ import fastf1
 import numpy as np
 import pandas as pd
 import logging
+from utils.gp_codes import resolve_gp_name
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ def get_circuit_info(year: int, grand_prix: str, session_type: str) -> dict:
     """
     try:
         logger.info(f"CircuitInfo: {year} {grand_prix} ({session_type})")
-        session = fastf1.get_session(year, grand_prix, session_type)
+        session = fastf1.get_session(year, resolve_gp_name(grand_prix), session_type)
         session.load(laps=True, telemetry=True, weather=False, messages=False)
 
         circuit_info = session.get_circuit_info()
