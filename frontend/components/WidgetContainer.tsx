@@ -5,6 +5,7 @@ import { useTerminalStore, Widget } from '@/store/terminalStore';
 import { API_BASE_URL } from '@/lib/api';
 import { X, RefreshCw } from 'lucide-react';
 import TelemetryChart from './TelemetryChart';
+import MultiTelemetryChart from './MultiTelemetryChart';
 import TrackMapChart from './TrackMapChart';
 import StintAnalysisChart from './StintAnalysisChart';
 import DominanceMapChart from './DominanceMapChart';
@@ -43,14 +44,31 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
 
                 queryUrl = `/api/v1/data/${dataset}?year=${year}&prix=${prix}&session=${session}${driverQuery}`;
             } else if (widget.type === 'TEL') {
-                endpoint = '/api/v1/telemetry/compare';
-                payload = {
-                    year: parseInt(widget.params[0]),
-                    prix: widget.params[1],
-                    session: widget.params[2],
-                    driver_a: widget.params[3],
-                    driver_b: widget.params[4]
-                };
+                // Multi-driver detection: comma-separated or 3+ space-separated drivers
+                const year = parseInt(widget.params[0]);
+                const prix = widget.params[1];
+                const session = widget.params[2];
+                const driverArgs = widget.params.slice(3);
+
+                // Parse drivers: could be "VER,NOR,LEC" (comma) or "VER NOR LEC" (space)
+                let drivers: string[] = [];
+                for (const arg of driverArgs) {
+                    if (arg.includes(',')) {
+                        drivers.push(...arg.split(',').map(d => d.trim()).filter(Boolean));
+                    } else if (arg.length === 3 && /^[A-Z]{3}$/.test(arg)) {
+                        drivers.push(arg);
+                    }
+                }
+
+                if (drivers.length <= 2 && !driverArgs.some(a => a.includes(','))) {
+                    // Legacy 2-driver comparison mode
+                    endpoint = '/api/v1/telemetry/compare';
+                    payload = { year, prix, session, driver_a: drivers[0], driver_b: drivers[1] };
+                } else {
+                    // Multi-driver overlay mode (1-6 drivers)
+                    endpoint = '/api/v1/telemetry/multi';
+                    payload = { year, prix, session, drivers };
+                }
             } else if (widget.type === 'MAP_SPD') {
                 endpoint = '/api/v1/track-map/speed';
                 payload = {
@@ -213,8 +231,8 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
         if (isLoading) {
             return (
                 <div className="flex h-full w-full flex-col justify-center items-center text-center">
-                    <RefreshCw className="w-5 h-5 text-neon-aston-green animate-spin mb-2" />
-                    <span className="text-neon-aston-green uppercase tracking-widest text-xs font-mono font-bold">
+                    <RefreshCw className="w-5 h-5 text-[#ff6600] animate-spin mb-2" />
+                    <span className="text-[#ff6600] uppercase tracking-widest text-xs font-mono font-bold">
                         QUERYING QUANT ENGINE...
                     </span>
                 </div>
@@ -224,7 +242,7 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
         if (error) {
             return (
                 <div className="flex h-full w-full flex-col justify-center px-4">
-                    <span className="text-neon-ferrari-red text-xs font-mono uppercase font-bold tracking-widest border-b border-neon-ferrari-red pb-1 mb-2">
+                    <span className="text-[#cc3333] text-xs font-mono uppercase font-bold tracking-widest border-b border-[#cc3333] pb-1 mb-2">
                         [!] DATA PIPELINE FAILURE
                     </span>
                     <p className="text-[#ff5555] text-xs font-mono break-all font-light">
@@ -239,8 +257,14 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
         }
 
         switch (widget.type) {
-            case 'TEL':
+            case 'TEL': {
+                // Detect multi-driver format: data is an array with .code + .telemetry
+                const isMulti = Array.isArray(data) && data.length > 0 && data[0]?.code;
+                if (isMulti) {
+                    return <MultiTelemetryChart drivers={data} />;
+                }
                 return <TelemetryChart data={data} driverA={widget.params[3]} driverB={widget.params[4]} />;
+            }
             case 'MAP_SPD':
                 return <TrackMapChart data={data} driver={widget.params[3]} type="speed" />;
             case 'MAP_GEAR':

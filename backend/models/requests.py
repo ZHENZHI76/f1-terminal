@@ -32,3 +32,7 @@ class TrackMapRequest(BaseF1Request):
 class DominanceRequest(BaseF1Request):
     driver_a: str
     driver_b: str
+
+class MultiTelemetryRequest(BaseF1Request):
+    drivers: list[str]  # 1-6 driver codes, e.g. ["VER", "NOR", "LEC"]
+
