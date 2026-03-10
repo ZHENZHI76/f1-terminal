@@ -1,3 +1,4 @@
+import os
 import fastf1
 import polars as pl
 import numpy as np
@@ -5,6 +6,10 @@ import logging
 from utils.gp_codes import resolve_gp_name
 
 logger = logging.getLogger(__name__)
+
+CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "f1_cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
+fastf1.Cache.enable_cache(CACHE_DIR)
 
 def get_dominance_map(year: int, grand_prix: str, session_type: str, driver_a: str, driver_b: str) -> dict:
     """

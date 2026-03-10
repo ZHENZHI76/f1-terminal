@@ -10,18 +10,24 @@ CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "f1_cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 fastf1.Cache.enable_cache(CACHE_DIR)
 
-ergast = Ergast()
-
 
 def get_driver_standings(year: int) -> dict:
     """
     Fetch World Drivers' Championship standings for a given season via Ergast/Jolpica API.
+    Includes robust error handling for API timeouts and empty responses.
     """
     try:
         logger.info(f"Fetching WDC standings for {year}")
+        ergast = Ergast()
         result = ergast.get_driver_standings(season=year, result_type='pandas')
 
-        df = result.content[0]  # ErgastMultiResponse → first content DataFrame
+        if result is None or not hasattr(result, 'content') or len(result.content) == 0:
+            raise ValueError(f"No WDC standings data returned for {year}. The season may not have started yet.")
+
+        df = result.content[0]
+
+        if df.empty:
+            raise ValueError(f"Empty WDC standings for {year}. Data may not be available yet.")
 
         standings = []
         for _, row in df.iterrows():
@@ -40,20 +46,30 @@ def get_driver_standings(year: int) -> dict:
         logger.info(f"WDC standings: {len(standings)} drivers for {year}")
         return {"year": year, "type": "WDC", "standings": standings}
 
+    except ValueError:
+        raise
     except Exception as e:
         logger.error(f"WDC standings fetch failed: {str(e)}")
-        raise
+        raise ValueError(f"Failed to fetch WDC standings for {year}: {str(e)}")
 
 
 def get_constructor_standings(year: int) -> dict:
     """
     Fetch World Constructors' Championship standings for a given season via Ergast/Jolpica API.
+    Includes robust error handling for API timeouts and empty responses.
     """
     try:
         logger.info(f"Fetching WCC standings for {year}")
+        ergast = Ergast()
         result = ergast.get_constructor_standings(season=year, result_type='pandas')
 
+        if result is None or not hasattr(result, 'content') or len(result.content) == 0:
+            raise ValueError(f"No WCC standings data returned for {year}. The season may not have started yet.")
+
         df = result.content[0]
+
+        if df.empty:
+            raise ValueError(f"Empty WCC standings for {year}. Data may not be available yet.")
 
         standings = []
         for _, row in df.iterrows():
@@ -70,9 +86,11 @@ def get_constructor_standings(year: int) -> dict:
         logger.info(f"WCC standings: {len(standings)} constructors for {year}")
         return {"year": year, "type": "WCC", "standings": standings}
 
+    except ValueError:
+        raise
     except Exception as e:
         logger.error(f"WCC standings fetch failed: {str(e)}")
-        raise
+        raise ValueError(f"Failed to fetch WCC standings for {year}: {str(e)}")
 
 
 def _safe_int(val) -> int | None:

@@ -10,6 +10,14 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 fastf1.Cache.enable_cache(CACHE_DIR)
 
 
+def _fix_color(raw: str) -> str:
+    """Ensure TeamColor has # prefix for CSS usage."""
+    if not raw:
+        return "#666666"
+    raw = str(raw).strip()
+    return raw if raw.startswith('#') else f'#{raw}'
+
+
 def get_session_results(year: int, grand_prix: str, session_type: str) -> list[dict]:
     """
     Extract session results: positions, Q1/Q2/Q3 times, grid positions,
@@ -35,7 +43,7 @@ def get_session_results(year: int, grand_prix: str, session_type: str) -> list[d
                 "FullName": row.get("FullName", ""),
                 "DriverNumber": str(row.get("DriverNumber", "")),
                 "TeamName": row.get("TeamName", ""),
-                "TeamColor": row.get("TeamColor", ""),
+                "TeamColor": _fix_color(row.get("TeamColor", "")),
                 "Points": _safe_float(row.get("Points")),
                 "Status": str(row.get("Status", "")),
                 "Q1": _td_to_str(row.get("Q1")),
@@ -74,7 +82,7 @@ def get_driver_list(year: int, grand_prix: str, session_type: str) -> list[dict]
                 "DriverNumber": str(row.get("DriverNumber", "")),
                 "FullName": row.get("FullName", ""),
                 "TeamName": row.get("TeamName", ""),
-                "TeamColor": row.get("TeamColor", ""),
+                "TeamColor": _fix_color(row.get("TeamColor", "")),
             })
 
         return drivers

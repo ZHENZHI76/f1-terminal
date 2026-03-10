@@ -30,11 +30,42 @@ def get_stint_analysis(year: int, grand_prix: str, session_type: str, driver: st
         if laps.empty:
             raise ValueError(f"No laps found for {driver} in {year} {grand_prix} {session_type}")
 
-        # 2. Strict Data Sanitization using FastF1 built-in methods
-        # pick_wo_box: Remove in-laps and out-laps
-        # pick_track_status('1'): Only green flag laps
-        # pick_accurate: Timing sync validation
-        valid_laps = laps.pick_wo_box().pick_track_status('1', how='any').pick_accurate().copy()
+        # 2. Strict Data Sanitization with progressive fallback
+        # Try strictest first, then fall back if too aggressive
+        valid_laps = None
+        
+        # Level 1: Full sanitization (gold standard)
+        try:
+            candidate = laps.pick_wo_box().pick_track_status('1', how='any').pick_accurate().copy()
+            if not candidate.empty and len(candidate) >= 3:
+                valid_laps = candidate
+        except Exception as e:
+            logger.warning(f"Full sanitization failed for {driver}: {e}")
+        
+        # Level 2: Remove box laps + pick_accurate only
+        if valid_laps is None:
+            try:
+                candidate = laps.pick_wo_box().pick_accurate().copy()
+                if not candidate.empty and len(candidate) >= 3:
+                    valid_laps = candidate
+                    logger.info(f"Fallback to pick_wo_box + pick_accurate for {driver}")
+            except Exception:
+                pass
+        
+        # Level 3: Just remove box laps
+        if valid_laps is None:
+            try:
+                candidate = laps.pick_wo_box().copy()
+                if not candidate.empty:
+                    valid_laps = candidate
+                    logger.info(f"Fallback to pick_wo_box only for {driver}")
+            except Exception:
+                pass
+        
+        # Level 4: Raw laps (last resort)
+        if valid_laps is None:
+            valid_laps = laps.copy()
+            logger.warning(f"Using raw laps for {driver} — all sanitization methods failed")
         
         if valid_laps.empty:
             raise ValueError(f"No valid racing laps found for {driver} after sanitization.")

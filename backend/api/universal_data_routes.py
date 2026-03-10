@@ -3,6 +3,7 @@ from typing import Optional
 import logging
 import fastf1
 import pandas as pd
+from utils.gp_codes import resolve_gp_name
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -24,8 +25,9 @@ def get_universal_data(
         raise HTTPException(status_code=400, detail=f"Invalid dataset '{dataset}'. Valid options: {valid_datasets}")
 
     try:
-        # Load the Core Session
-        f1_session = fastf1.get_session(year, prix, session)
+        # Load the Core Session — resolve GP code (e.g. "AUS" → "Australian Grand Prix")
+        gp_name = resolve_gp_name(prix)
+        f1_session = fastf1.get_session(year, gp_name, session)
         
         # Load data based on requested dataset to optimize parsing time
         if dataset in ['weather']:

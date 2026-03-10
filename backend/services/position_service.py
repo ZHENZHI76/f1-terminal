@@ -11,6 +11,14 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 fastf1.Cache.enable_cache(CACHE_DIR)
 
 
+def _fix_color(raw) -> str:
+    """Ensure TeamColor has # prefix."""
+    if not raw:
+        return "#666666"
+    raw = str(raw).strip()
+    return raw if raw.startswith('#') else f'#{raw}'
+
+
 def get_position_chart(year: int, grand_prix: str, session_type: str) -> dict:
     """
     Build lap-by-lap position data for all drivers in a race session.
@@ -51,6 +59,27 @@ def get_position_chart(year: int, grand_prix: str, session_type: str) -> dict:
                     "positions": positions
                 })
 
+        # If no position data found (qualifying/FP — Position is NaN),
+        # fall back to lap order as pseudo-positions for visualization
+        if not traces or all(len(t['positions']) == 0 for t in traces):
+            traces = []
+            for drv in drivers:
+                drv_laps = laps[laps['Driver'] == drv].sort_values('LapNumber')
+                positions = []
+                for idx, (_, lap) in enumerate(drv_laps.iterrows()):
+                    ln = lap.get('LapNumber')
+                    if ln is not None and not _is_nan(ln):
+                        positions.append({"lap": int(ln), "position": idx + 1})
+                if positions:
+                    team = str(drv_laps.iloc[0].get('Team', ''))
+                    traces.append({
+                        "driver": drv,
+                        "team": team,
+                        "team_color": "",
+                        "status": "",
+                        "positions": positions
+                    })
+
         # Get total laps
         total_laps = int(laps['LapNumber'].max()) if not laps['LapNumber'].empty else 0
 
@@ -63,14 +92,14 @@ def get_position_chart(year: int, grand_prix: str, session_type: str) -> dict:
             status_map = {}
             for _, row in results.iterrows():
                 abbr = str(row.get('Abbreviation', ''))
-                color_map[abbr] = str(row.get('TeamColor', ''))
+                color_map[abbr] = _fix_color(row.get('TeamColor', ''))
                 status_map[abbr] = str(row.get('Status', ''))
                 gp = row.get('GridPosition')
                 if gp is not None and not _is_nan(gp):
                     grid.append({
                         "driver": abbr,
                         "grid_position": int(gp),
-                        "team_color": str(row.get('TeamColor', ''))
+                        "team_color": _fix_color(row.get('TeamColor', ''))
                     })
             grid.sort(key=lambda x: x["grid_position"])
             

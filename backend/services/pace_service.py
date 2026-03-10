@@ -18,6 +18,14 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 fastf1.Cache.enable_cache(CACHE_DIR)
 
 
+def _fix_color(raw) -> str:
+    """Ensure TeamColor has # prefix."""
+    if not raw:
+        return "#666666"
+    raw = str(raw).strip()
+    return raw if raw.startswith('#') else f'#{raw}'
+
+
 def get_multi_driver_pace(year: int, grand_prix: str, session_type: str,
                           drivers: list[str]) -> dict:
     """
@@ -45,10 +53,32 @@ def get_multi_driver_pace(year: int, grand_prix: str, session_type: str,
                 logger.warning(f"No laps for {driver}, skipping")
                 continue
 
-            # Strict sanitization
+            # Progressive sanitization fallback
+            valid = None
             try:
-                valid = laps.pick_wo_box().pick_track_status('1', how='any').pick_accurate().copy()
+                candidate = laps.pick_wo_box().pick_track_status('1', how='any').pick_accurate().copy()
+                if not candidate.empty and len(candidate) >= 3:
+                    valid = candidate
             except Exception:
+                pass
+            
+            if valid is None:
+                try:
+                    candidate = laps.pick_wo_box().pick_accurate().copy()
+                    if not candidate.empty and len(candidate) >= 3:
+                        valid = candidate
+                except Exception:
+                    pass
+            
+            if valid is None:
+                try:
+                    candidate = laps.pick_wo_box().copy()
+                    if not candidate.empty:
+                        valid = candidate
+                except Exception:
+                    pass
+            
+            if valid is None:
                 valid = laps.copy()
 
             if valid.empty:
@@ -66,7 +96,7 @@ def get_multi_driver_pace(year: int, grand_prix: str, session_type: str,
                 results = session.results
                 drv_result = results[results['Abbreviation'] == driver]
                 if not drv_result.empty:
-                    team_color = str(drv_result.iloc[0].get('TeamColor', ''))
+                    team_color = _fix_color(drv_result.iloc[0].get('TeamColor', ''))
             except Exception:
                 pass
 

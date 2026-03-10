@@ -1,3 +1,4 @@
+import os
 import fastf1
 import polars as pl
 import numpy as np
@@ -6,6 +7,10 @@ from services.circuit_info_service import get_circuit_info
 from utils.gp_codes import resolve_gp_name
 
 logger = logging.getLogger(__name__)
+
+CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "f1_cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
+fastf1.Cache.enable_cache(CACHE_DIR)
 
 
 def get_track_map_telemetry(year: int, grand_prix: str, session_type: str,
