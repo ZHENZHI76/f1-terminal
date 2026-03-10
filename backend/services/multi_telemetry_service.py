@@ -7,6 +7,7 @@ import os
 import fastf1
 import polars as pl
 import numpy as np
+from typing import Optional
 from scipy.interpolate import interp1d
 import logging
 import pandas as pd
@@ -78,7 +79,7 @@ def _interpolate_driver(df: pl.DataFrame, ref_distance: np.ndarray) -> dict:
     }
 
 
-def get_multi_driver_telemetry(year: int, grand_prix: str, session_type: str, drivers: list[str]) -> dict:
+def get_multi_driver_telemetry(year: int, grand_prix: str, session_type: str, drivers: list[str], lap_number: Optional[int] = None) -> dict:
     """
     Multi-driver telemetry overlay.
     Returns:
@@ -99,10 +100,22 @@ def get_multi_driver_telemetry(year: int, grand_prix: str, session_type: str, dr
     # Extract each driver's fastest lap telemetry
     driver_data = []
     for drv in drivers:
-        lap = session.laps.pick_drivers(drv).pick_fastest()
-        if lap is None or (hasattr(lap, 'empty') and lap.empty):
-            logger.warning(f"No fastest lap for {drv}, skipping")
+        drv_laps = session.laps.pick_drivers(drv)
+        if drv_laps.empty:
+            logger.warning(f"No laps for {drv}, skipping")
             continue
+        
+        if lap_number is not None:
+            specific = drv_laps[drv_laps['LapNumber'] == lap_number]
+            if specific.empty:
+                logger.warning(f"Lap {lap_number} not found for {drv}, skipping")
+                continue
+            lap = specific.iloc[0]
+        else:
+            lap = drv_laps.pick_fastest()
+            if lap is None or (hasattr(lap, 'empty') and lap.empty):
+                logger.warning(f"No fastest lap for {drv}, skipping")
+                continue
         tel = lap.get_telemetry()[cols].copy()
         tel['Time'] = tel['Time'].dt.total_seconds()
         df = pl.from_pandas(tel).fill_nan(0).fill_null(0)

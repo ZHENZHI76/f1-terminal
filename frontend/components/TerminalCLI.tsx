@@ -8,7 +8,7 @@ import { COMMAND_REGISTRY } from "@/config/commands";
 
 // ─── Autocomplete Data ──────────────────────────────────────────────────────
 const COMMANDS = COMMAND_REGISTRY.map(c => c.command.split(' / ')[0].split(' ')[0]).filter((v, i, a) => a.indexOf(v) === i);
-const ALL_COMMANDS = [...COMMANDS, "MAP SPD", "MAP GEAR", "HELP", "DOCS", "?", "CLEAR", "CLS", "RESET"];
+const ALL_COMMANDS = [...COMMANDS, "MAP SPD", "MAP GEAR", "HELP", "DOCS", "?", "CLEAR", "CLS", "RESET", "GAP", "TOPSPEED", "TYRE", "H2H"];
 
 const SESSION_CODES = ["FP1", "FP2", "FP3", "Q", "R", "S", "SQ", "SS"];
 
@@ -58,6 +58,17 @@ function getTokenContext(tokens: string[], cmd: string): SuggestionType {
     if (['QUAL'].includes(resolved)) {
         if (tokens.length <= 2) return 'year';
         if (tokens.length === 3) return 'gp';
+        return 'none';
+    }
+    if (['H2H'].includes(resolved)) {
+        if (tokens.length <= 2) return 'year';
+        if (tokens.length === 3 || tokens.length === 4) return 'driver';
+        return 'none';
+    }
+    if (['TOPSPEED', 'TYRE'].includes(resolved)) {
+        if (tokens.length <= 2) return 'year';
+        if (tokens.length === 3) return 'gp';
+        if (tokens.length === 4) return 'session';
         return 'none';
     }
 
@@ -332,6 +343,22 @@ export default function TerminalCLI() {
                 const args = parts.slice(1);
                 addWidget('CIRCUIT', args, { x: 0, y: 0, w: 8, h: 10, minW: 3, minH: 4 }, 'raw');
             }
+            else if (cmd === "GAP") {
+                const args = parts.slice(1);
+                addWidget('GAP', args, { x: 0, y: 0, w: 12, h: 10, minW: 4, minH: 4 }, 'raw');
+            }
+            else if (cmd === "TOPSPEED") {
+                const args = parts.slice(1);
+                addWidget('TOPSPEED', args, { x: 0, y: 0, w: 12, h: 12, minW: 4, minH: 4 }, 'raw');
+            }
+            else if (cmd === "TYRE") {
+                const args = parts.slice(1);
+                addWidget('TYRE', args, { x: 0, y: 0, w: 12, h: 12, minW: 4, minH: 4 }, 'raw');
+            }
+            else if (cmd === "H2H") {
+                const args = parts.slice(1);
+                addWidget('H2H', args, { x: 0, y: 0, w: 12, h: 14, minW: 4, minH: 5 }, 'raw');
+            }
             else {
                 console.warn(`[TERMINAL] Unknown command: ${cmd}`);
             }
@@ -377,8 +404,8 @@ export default function TerminalCLI() {
                             <button
                                 key={i}
                                 className={`w-full text-left px-4 py-1.5 text-[12px] font-mono tracking-wider flex items-center justify-between transition-colors ${i === selectedIdx
-                                        ? 'bg-[#ff6600] text-black'
-                                        : 'text-[#ccc] hover:bg-[#1a1a1a]'
+                                    ? 'bg-[#ff6600] text-black'
+                                    : 'text-[#ccc] hover:bg-[#1a1a1a]'
                                     }`}
                                 onClick={() => applySuggestion(sug)}
                                 onMouseEnter={() => setSelectedIdx(i)}

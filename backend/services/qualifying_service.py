@@ -41,13 +41,28 @@ def get_qualifying_splits(year: int, grand_prix: str) -> dict:
                 else:
                     best = valid.pick_fastest()
 
-                if best.empty:
+                if best is None or (hasattr(best, 'empty') and best.empty):
                     continue
 
                 lap_time = best.get("LapTime")
+                team = str(best.get("Team", ""))
+                
+                # Get TeamColor from session results
+                team_color = "#666666"
+                try:
+                    drv_result = session.results[session.results['Abbreviation'] == drv]
+                    if not drv_result.empty:
+                        raw_color = drv_result.iloc[0].get('TeamColor', '')
+                        if raw_color:
+                            tc = str(raw_color).strip()
+                            team_color = tc if tc.startswith('#') else f'#{tc}'
+                except Exception:
+                    pass
+                
                 results.append({
                     "driver": str(best.get("Driver", "")),
-                    "team": str(best.get("Team", "")),
+                    "team": team,
+                    "team_color": team_color,
                     "lap_time_sec": round(lap_time.total_seconds(), 4) if lap_time is not None and not _is_nat(lap_time) else None,
                     "lap_time_str": _format_laptime(lap_time),
                     "compound": str(best.get("Compound", "UNKNOWN")),
@@ -58,6 +73,18 @@ def get_qualifying_splits(year: int, grand_prix: str) -> dict:
 
             # Sort by lap time (fastest first)
             results.sort(key=lambda x: x["lap_time_sec"] if x["lap_time_sec"] is not None else 9999)
+            
+            # Calculate gap-to-pole (gap to fastest in this segment)
+            if results and results[0]["lap_time_sec"] is not None:
+                pole_time = results[0]["lap_time_sec"]
+                for r in results:
+                    if r["lap_time_sec"] is not None:
+                        r["gap_to_pole"] = round(r["lap_time_sec"] - pole_time, 4)
+                        r["gap_to_pole_pct"] = round((r["lap_time_sec"] - pole_time) / pole_time * 100, 3)
+                    else:
+                        r["gap_to_pole"] = None
+                        r["gap_to_pole_pct"] = None
+            
             return results
 
         q1_data = extract_segment(q1, "Q1")

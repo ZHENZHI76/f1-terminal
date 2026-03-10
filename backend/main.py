@@ -19,7 +19,11 @@ from api import (
     standings_routes,
     laps_routes,
     circuit_info_routes,
-    pace_routes
+    pace_routes,
+    gap_routes,
+    topspeed_routes,
+    tyre_routes,
+    h2h_routes
 )
 # Initialize cache path for FastF1
 CACHE_DIR = os.path.join(os.path.dirname(__file__), "f1_cache")
@@ -59,6 +63,10 @@ app.include_router(standings_routes.router, prefix="/api/v1", tags=["standings"]
 app.include_router(laps_routes.router, prefix="/api/v1", tags=["laps"])
 app.include_router(circuit_info_routes.router, prefix="/api/v1", tags=["circuit-info"])
 app.include_router(pace_routes.router, prefix="/api/v1", tags=["pace"])
+app.include_router(gap_routes.router, prefix="/api/v1", tags=["gap"])
+app.include_router(topspeed_routes.router, prefix="/api/v1", tags=["topspeed"])
+app.include_router(tyre_routes.router, prefix="/api/v1", tags=["tyre"])
+app.include_router(h2h_routes.router, prefix="/api/v1", tags=["h2h"])
 
 @app.get("/")
 def read_root():

@@ -18,7 +18,8 @@ def compare_telemetry(req: TelemetryRequest):
             req.prix, 
             req.session, 
             req.driver_a, 
-            req.driver_b
+            req.driver_b,
+            req.lap_number
         )
         return {
             "status": "success",
@@ -52,7 +53,8 @@ def multi_telemetry(req: MultiTelemetryRequest):
             req.year,
             req.prix,
             req.session,
-            req.drivers
+            req.drivers,
+            req.lap_number
         )
         return {
             "status": "success",

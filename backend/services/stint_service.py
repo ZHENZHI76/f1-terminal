@@ -5,6 +5,7 @@ import numpy as np
 from scipy.stats import linregress
 import logging
 from utils.gp_codes import resolve_gp_name
+from utils.fuel_model import get_fuel_correction
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,11 @@ def get_stint_analysis(year: int, grand_prix: str, session_type: str, driver: st
         logger.info(f"Initiating FastF1 Stint Analysis fetch for {year} {grand_prix} ({session_type}) Driver: {driver}")
         session = fastf1.get_session(year, resolve_gp_name(grand_prix), session_type)
         session.load(telemetry=False, laps=True, weather=False)
+        
+        # Dynamic fuel correction from circuit-specific model
+        event_name = str(getattr(session.event, 'EventName', grand_prix))
+        fuel_data = get_fuel_correction(event_name)
+        fuel_correction_per_lap = fuel_data['correction_per_lap']
         
         # 1. Load laps for driver
         laps = session.laps.pick_drivers(driver)
@@ -107,17 +113,17 @@ def get_stint_analysis(year: int, grand_prix: str, session_type: str, driver: st
             # Linear Regression: T_lap = T_base + α·L + f(W_f)
             slope, intercept, r_value, p_value, std_err = linregress(x, y)
             
-            # Fuel correction: ~1.8 kg/lap burn × ~0.015 s/kg ≈ 0.027 s/lap lighter
-            FUEL_CORRECTION_PER_LAP = 0.027
+            # Fuel correction: circuit-specific from fuel_model.py
             # Pure tyre degradation = raw slope + fuel gain (since fuel makes car faster over time)
-            tyre_deg_slope = slope + FUEL_CORRECTION_PER_LAP
+            tyre_deg_slope = slope + fuel_correction_per_lap
             
             trendlines.append({
                 "Stint": int(stint),
                 "Compound": compound,
                 "Slope": float(slope),             # Raw degradation (incl. fuel effect)
                 "TyreDegSlope": float(tyre_deg_slope),  # Pure tyre deg (fuel-corrected)
-                "FuelCorrPerLap": FUEL_CORRECTION_PER_LAP,
+                "FuelCorrPerLap": fuel_correction_per_lap,
+                "FuelSource": fuel_data['source'],
                 "Intercept": float(intercept),
                 "R2": round(float(r_value ** 2), 4),
                 "PValue": float(p_value),

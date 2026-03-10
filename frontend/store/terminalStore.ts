@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type WidgetType = 'TEL' | 'MAP_SPD' | 'MAP_GEAR' | 'STRAT' | 'STINT' | 'GG' | 'DOM' | 'INSIGHT' | 'WEATHER' | 'MSG' | 'RES' | 'SEC' | 'DRIVERS' | 'QUAL' | 'POS' | 'PITSTOP' | 'WDC' | 'WCC' | 'LAPS' | 'SCHEDULE' | 'PACE' | 'CIRCUIT';
+export type WidgetType = 'TEL' | 'MAP_SPD' | 'MAP_GEAR' | 'STRAT' | 'STINT' | 'GG' | 'DOM' | 'INSIGHT' | 'WEATHER' | 'MSG' | 'RES' | 'SEC' | 'DRIVERS' | 'QUAL' | 'POS' | 'PITSTOP' | 'WDC' | 'WCC' | 'LAPS' | 'SCHEDULE' | 'PACE' | 'CIRCUIT' | 'GAP' | 'TOPSPEED' | 'TYRE' | 'H2H';
 
 export interface WidgetLayout {
     i: string;

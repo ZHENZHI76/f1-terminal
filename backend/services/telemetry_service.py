@@ -18,6 +18,39 @@ from typing import Optional
 from services.circuit_info_service import get_corner_distances
 from utils.gp_codes import resolve_gp_name
 
+
+def _select_lap(session_laps, driver: str, lap_number: Optional[int] = None):
+    """
+    Paddock-grade lap selector.
+    
+    Modes:
+      - lap_number=None  → fastest lap (pick_fastest)
+      - lap_number=N     → specific lap number N
+    
+    Returns (lap, description_str) or raises ValueError.
+    """
+    drv_laps = session_laps.pick_drivers(driver)
+    if drv_laps.empty:
+        raise ValueError(f"No laps found for {driver}")
+    
+    if lap_number is not None:
+        # Specific lap selection
+        specific = drv_laps[drv_laps['LapNumber'] == lap_number]
+        if specific.empty:
+            raise ValueError(f"Lap {lap_number} not found for {driver}. Available: {sorted(drv_laps['LapNumber'].dropna().astype(int).tolist())}")
+        lap = specific.iloc[0]  # Returns a Lap (Series-like)
+        return lap, f"Lap {lap_number}"
+    else:
+        # Fastest lap
+        lap = drv_laps.pick_fastest()
+        if lap is None or (hasattr(lap, 'empty') and lap.empty):
+            raise ValueError(f"No valid fastest lap for {driver}. Driver may not have set a timed lap.")
+        import pandas as pd
+        ln = lap.get('LapNumber')
+        ln_str = f"Lap {int(ln)}" if ln is not None and not pd.isna(ln) else "Fastest"
+        return lap, f"{ln_str} (Fastest)"
+
+
 def _extract_lap_meta(lap, driver: str) -> dict:
     """Extract metadata from a lap for context display."""
     import pandas as pd
@@ -40,25 +73,24 @@ def _extract_lap_meta(lap, driver: str) -> dict:
     }
 
 
-def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: str, driver_a: str, driver_b: Optional[str] = None) -> dict:
+def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: str, driver_a: str, driver_b: Optional[str] = None, lap_number: Optional[int] = None) -> dict:
     """
-    Quant-Level Data Modeling:
-    Load a session, extract fastest lap telemetry.
-    If driver_b is provided, aligns their telemetry based on Distance using interpolation in Polars 
-    and calculates speed delta between them.
-    Returns dict with 'telemetry' (list[dict]) and 'meta' (lap context for each driver).
+    Paddock-Grade Telemetry Comparator.
+    
+    Supports:
+      - lap_number=None  → fastest lap
+      - lap_number=N     → specific lap number
+    
+    If driver_b is provided, aligns telemetry on Distance axis using SciPy interpolation
+    and computes ΔT (delta time) between them.
     """
     try:
-        # 使用 FastF1 加载 Session
-        logger.info(f"Initiating FastF1 data fetch for {year} {grand_prix} ({session_type})... (This may take a while on first run)")
+        logger.info(f"TEL: {year} {grand_prix} ({session_type}) {driver_a}" + (f" vs {driver_b}" if driver_b else "") + (f" LAP {lap_number}" if lap_number else " FASTEST"))
         session = fastf1.get_session(year, resolve_gp_name(grand_prix), session_type)
         session.load(telemetry=True, laps=True, weather=False)
-        logger.info(f"Successfully loaded FastF1 cache/session for {year} {grand_prix}.")
         
-        # 获取第一位车手在指定 Session（如 'Q'）中的最快圈 (Fastest Lap)
-        lap_a = session.laps.pick_drivers(driver_a).pick_fastest()
-        if lap_a is None or (hasattr(lap_a, 'empty') and lap_a.empty):
-            raise ValueError(f"Could not find valid fastest lap for {driver_a} in {year} {grand_prix}")
+        # Paddock-grade lap selector
+        lap_a, lap_desc_a = _select_lap(session.laps, driver_a, lap_number)
 
         cols = ['Time', 'Distance', 'Speed', 'Throttle', 'Brake', 'nGear', 'RPM', 'DRS']
 
@@ -90,10 +122,8 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
                 "corners": corners
             }
 
-        # 双车手对比模式
-        lap_b = session.laps.pick_drivers(driver_b).pick_fastest()
-        if lap_b is None or (hasattr(lap_b, 'empty') and lap_b.empty):
-            raise ValueError(f"Could not find valid fastest lap for {driver_b} in {year} {grand_prix}")
+        # Dual-driver comparison mode
+        lap_b, lap_desc_b = _select_lap(session.laps, driver_b, lap_number)
         
         # 提取包含 Time, Distance, Speed, Throttle, Brake, nGear, RPM, DRS 的遥测数据
         # 必须显式 .copy() 防止 Pandas 切片拷贝警告 (SettingWithCopyWarning) 导致数据篡改

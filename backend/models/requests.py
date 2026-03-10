@@ -9,6 +9,7 @@ class BaseF1Request(BaseModel):
 class TelemetryRequest(BaseF1Request):
     driver_a: str
     driver_b: Optional[str] = None
+    lap_number: Optional[int] = None  # None = fastest, int = specific lap
     
     model_config = ConfigDict(
         json_schema_extra={
@@ -17,7 +18,8 @@ class TelemetryRequest(BaseF1Request):
                 "prix": "BAH",
                 "session": "Q",
                 "driver_a": "VER",
-                "driver_b": "LEC"
+                "driver_b": "LEC",
+                "lap_number": None
             }
         }
     )
@@ -35,4 +37,5 @@ class DominanceRequest(BaseF1Request):
 
 class MultiTelemetryRequest(BaseF1Request):
     drivers: list[str]  # 1-6 driver codes, e.g. ["VER", "NOR", "LEC"]
+    lap_number: Optional[int] = None  # None = fastest, int = specific lap
 

@@ -50,9 +50,22 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                 const session = widget.params[2];
                 const driverArgs = widget.params.slice(3);
 
+                // Detect LAP keyword: "TEL 2025 AUS R VER LEC LAP 15"
+                let lapNumber: number | null = null;
+                const lapIdx = driverArgs.findIndex(a => a.toUpperCase() === 'LAP');
+                if (lapIdx >= 0 && lapIdx + 1 < driverArgs.length) {
+                    const lnParsed = parseInt(driverArgs[lapIdx + 1]);
+                    if (!isNaN(lnParsed)) lapNumber = lnParsed;
+                }
+                // Remove LAP keyword and its value from driver args
+                const cleanDriverArgs = driverArgs.filter((_, i) => {
+                    if (lapIdx >= 0 && (i === lapIdx || i === lapIdx + 1)) return false;
+                    return true;
+                });
+
                 // Parse drivers: could be "VER,NOR,LEC" (comma) or "VER NOR LEC" (space)
                 let drivers: string[] = [];
-                for (const arg of driverArgs) {
+                for (const arg of cleanDriverArgs) {
                     if (arg.includes(',')) {
                         drivers.push(...arg.split(',').map(d => d.trim()).filter(Boolean));
                     } else if (arg.length === 3 && /^[A-Z]{3}$/.test(arg)) {
@@ -60,14 +73,14 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                     }
                 }
 
-                if (drivers.length <= 2 && !driverArgs.some(a => a.includes(','))) {
+                if (drivers.length <= 2 && !cleanDriverArgs.some(a => a.includes(','))) {
                     // Legacy 2-driver comparison mode
                     endpoint = '/api/v1/telemetry/compare';
-                    payload = { year, prix, session, driver_a: drivers[0], driver_b: drivers[1] };
+                    payload = { year, prix, session, driver_a: drivers[0], driver_b: drivers[1], lap_number: lapNumber };
                 } else {
                     // Multi-driver overlay mode (1-6 drivers)
                     endpoint = '/api/v1/telemetry/multi';
-                    payload = { year, prix, session, drivers };
+                    payload = { year, prix, session, drivers, lap_number: lapNumber };
                 }
             } else if (widget.type === 'MAP_SPD') {
                 endpoint = '/api/v1/track-map/speed';
@@ -182,6 +195,32 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
                 const prix = widget.params[1];
                 const sess = widget.params[2] || 'R';
                 queryUrl = `/api/v1/circuit-info?year=${year}&prix=${prix}&session=${sess}`;
+            } else if (widget.type === 'GAP') {
+                isPost = false;
+                const year = widget.params[0];
+                const prix = widget.params[1];
+                const sess = widget.params[2] || 'R';
+                const drvA = widget.params[3];
+                const drvB = widget.params[4];
+                queryUrl = `/api/v1/gap?year=${year}&prix=${prix}&session=${sess}&driver_a=${drvA}&driver_b=${drvB}`;
+            } else if (widget.type === 'TOPSPEED') {
+                isPost = false;
+                const year = widget.params[0];
+                const prix = widget.params[1];
+                const sess = widget.params[2] || 'Q';
+                queryUrl = `/api/v1/topspeed?year=${year}&prix=${prix}&session=${sess}`;
+            } else if (widget.type === 'TYRE') {
+                isPost = false;
+                const year = widget.params[0];
+                const prix = widget.params[1];
+                const sess = widget.params[2] || 'R';
+                queryUrl = `/api/v1/tyre?year=${year}&prix=${prix}&session=${sess}`;
+            } else if (widget.type === 'H2H') {
+                isPost = false;
+                const year = widget.params[0];
+                const drvA = widget.params[1];
+                const drvB = widget.params[2];
+                queryUrl = `/api/v1/h2h?year=${year}&driver_a=${drvA}&driver_b=${drvB}`;
             } else {
                 throw new Error(`Widget type ${widget.type} logic missing.`);
             }

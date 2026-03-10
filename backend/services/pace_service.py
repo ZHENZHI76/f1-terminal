@@ -10,6 +10,7 @@ from scipy.stats import linregress
 import logging
 from utils.converters import safe_int
 from utils.gp_codes import resolve_gp_name
+from utils.fuel_model import get_fuel_correction
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,10 @@ def get_multi_driver_pace(year: int, grand_prix: str, session_type: str,
         session = fastf1.get_session(year, resolve_gp_name(grand_prix), session_type)
         session.load(laps=True, telemetry=False, weather=False, messages=False)
 
-        FUEL_CORRECTION_PER_LAP = 0.027  # ~1.8 kg/lap × ~0.015 s/kg
+        # Dynamic fuel correction from circuit-specific model
+        event_name = str(getattr(session.event, 'EventName', grand_prix))
+        fuel_data = get_fuel_correction(event_name)
+        fuel_correction_per_lap = fuel_data['correction_per_lap']
 
         all_drivers_data = []
 
@@ -123,7 +127,7 @@ def get_multi_driver_pace(year: int, grand_prix: str, session_type: str,
                     })
 
                 slope, intercept, r_value, p_value, std_err = linregress(x, y)
-                tyre_deg_slope = slope + FUEL_CORRECTION_PER_LAP
+                tyre_deg_slope = slope + fuel_correction_per_lap
 
                 trendlines.append({
                     "Stint": int(stint),
@@ -149,7 +153,8 @@ def get_multi_driver_pace(year: int, grand_prix: str, session_type: str,
 
         return {
             "drivers": all_drivers_data,
-            "fuel_correction_per_lap": FUEL_CORRECTION_PER_LAP,
+            "fuel_correction_per_lap": fuel_correction_per_lap,
+            "fuel_source": fuel_data['source'],
         }
 
     except Exception as e:
