@@ -28,7 +28,12 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
             let isPost = true;
             let queryUrl = '';
 
-            if (widget.viewMode === 'raw') {
+            // Universal data route — ONLY for widget types that use /api/v1/data/{dataset}
+            // CRITICAL: Do NOT intercept widgets that have their own dedicated API routes!
+            const UNIVERSAL_DATA_TYPES = ['STRAT', 'GG', 'WEATHER', 'MSG'];
+            const isUniversalRaw = widget.viewMode === 'raw' && (UNIVERSAL_DATA_TYPES.includes(widget.type) || widget.type === 'TEL');
+            
+            if (isUniversalRaw && UNIVERSAL_DATA_TYPES.includes(widget.type)) {
                 isPost = false;
                 let dataset = 'telemetry';
                 if (widget.type === 'WEATHER') dataset = 'weather';
