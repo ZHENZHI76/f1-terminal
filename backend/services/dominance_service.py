@@ -25,7 +25,7 @@ def get_dominance_map(year: int, grand_prix: str, session_type: str, driver_a: s
         lap_a = session.laps.pick_drivers(driver_a).pick_fastest()
         lap_b = session.laps.pick_drivers(driver_b).pick_fastest()
         
-        if lap_a.empty or lap_b.empty:
+        if lap_a is None or (hasattr(lap_a, 'empty') and lap_a.empty) or lap_b is None or (hasattr(lap_b, 'empty') and lap_b.empty):
             raise ValueError(f"Could not find valid fastest laps for {driver_a} or {driver_b}")
             
         # Extract base telemetry 

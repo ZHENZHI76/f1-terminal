@@ -38,7 +38,7 @@ def compare_telemetry(req: TelemetryRequest):
         raise HTTPException(status_code=404, detail=str(ve))
     except Exception as e:
         logger.error(f"API Error in compare_telemetry: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error processing telemetry.")
+        raise HTTPException(status_code=500, detail=f"Telemetry processing error: {str(e)}")
 
 
 @router.post("/telemetry/multi")
@@ -70,4 +70,4 @@ def multi_telemetry(req: MultiTelemetryRequest):
         raise HTTPException(status_code=404, detail=str(ve))
     except Exception as e:
         logger.error(f"API Error in multi_telemetry: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error processing multi-driver telemetry.")
+        raise HTTPException(status_code=500, detail=f"Multi-driver telemetry error: {str(e)}")

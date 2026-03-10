@@ -100,7 +100,7 @@ def get_multi_driver_telemetry(year: int, grand_prix: str, session_type: str, dr
     driver_data = []
     for drv in drivers:
         lap = session.laps.pick_drivers(drv).pick_fastest()
-        if lap.empty:
+        if lap is None or (hasattr(lap, 'empty') and lap.empty):
             logger.warning(f"No fastest lap for {drv}, skipping")
             continue
         tel = lap.get_telemetry()[cols].copy()

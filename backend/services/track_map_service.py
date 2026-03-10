@@ -32,7 +32,7 @@ def get_track_map_telemetry(year: int, grand_prix: str, session_type: str,
         session.load(telemetry=True, laps=True, weather=False)
         
         lap = session.laps.pick_drivers(driver).pick_fastest()
-        if lap.empty:
+        if lap is None or (hasattr(lap, 'empty') and lap.empty):
             raise ValueError(f"Could not find valid fastest lap for {driver} in {year} {grand_prix}")
             
         # Get raw telemetry preserving positional coordinates

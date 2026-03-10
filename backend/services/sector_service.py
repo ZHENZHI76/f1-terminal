@@ -25,9 +25,9 @@ def get_sector_comparison(year: int, grand_prix: str, session_type: str,
         lap_a = session.laps.pick_drivers(driver_a).pick_fastest()
         lap_b = session.laps.pick_drivers(driver_b).pick_fastest()
 
-        if lap_a.empty:
+        if lap_a is None or (hasattr(lap_a, 'empty') and lap_a.empty):
             raise ValueError(f"No fastest lap found for {driver_a}")
-        if lap_b.empty:
+        if lap_b is None or (hasattr(lap_b, 'empty') and lap_b.empty):
             raise ValueError(f"No fastest lap found for {driver_b}")
 
         def extract_sectors(lap, driver: str) -> dict:

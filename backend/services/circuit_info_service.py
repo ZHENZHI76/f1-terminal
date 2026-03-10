@@ -3,6 +3,7 @@ Circuit Information Service — FastF1 CircuitInfo Integration
 Extracts corner numbers, positions, distances, angles, marshal sectors,
 and rotation data for any session's circuit.
 """
+import os
 import fastf1
 import numpy as np
 import pandas as pd
@@ -10,6 +11,10 @@ import logging
 from utils.gp_codes import resolve_gp_name
 
 logger = logging.getLogger(__name__)
+
+CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "f1_cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
+fastf1.Cache.enable_cache(CACHE_DIR)
 
 
 def get_circuit_info(year: int, grand_prix: str, session_type: str) -> dict:
@@ -69,7 +74,7 @@ def get_circuit_info(year: int, grand_prix: str, session_type: str) -> dict:
         circuit_length = 0.0
         try:
             fastest_lap = session.laps.pick_fastest()
-            if not fastest_lap.empty:
+            if fastest_lap is not None and not (hasattr(fastest_lap, 'empty') and fastest_lap.empty):
                 tel = fastest_lap.get_telemetry()
                 if 'Distance' in tel.columns and len(tel) > 0:
                     circuit_length = float(tel['Distance'].max())

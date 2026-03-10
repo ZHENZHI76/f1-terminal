@@ -57,7 +57,7 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
         
         # 获取第一位车手在指定 Session（如 'Q'）中的最快圈 (Fastest Lap)
         lap_a = session.laps.pick_drivers(driver_a).pick_fastest()
-        if lap_a.empty:
+        if lap_a is None or (hasattr(lap_a, 'empty') and lap_a.empty):
             raise ValueError(f"Could not find valid fastest lap for {driver_a} in {year} {grand_prix}")
 
         cols = ['Time', 'Distance', 'Speed', 'Throttle', 'Brake', 'nGear', 'RPM', 'DRS']
@@ -92,7 +92,7 @@ def get_driver_telemetry_comparison(year: int, grand_prix: str, session_type: st
 
         # 双车手对比模式
         lap_b = session.laps.pick_drivers(driver_b).pick_fastest()
-        if lap_b.empty:
+        if lap_b is None or (hasattr(lap_b, 'empty') and lap_b.empty):
             raise ValueError(f"Could not find valid fastest lap for {driver_b} in {year} {grand_prix}")
         
         # 提取包含 Time, Distance, Speed, Throttle, Brake, nGear, RPM, DRS 的遥测数据
