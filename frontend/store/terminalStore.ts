@@ -65,11 +65,18 @@ export const useTerminalStore = create<TerminalState>()(
         }),
         {
             name: 'f1-terminal-workspace',  // localStorage key
-            version: 1,                     // Schema version for future migrations
+            version: 2,                     // Bumped: v2 to clear stale widgets from pre-v2.4 code
             partialize: (state) => ({
                 // Only persist widget definitions, NOT store functions
                 widgets: state.widgets
             }),
+            migrate: (persistedState: any, version: number) => {
+                // If upgrading from v1, clear all widgets to prevent crashes
+                if (version < 2) {
+                    return { widgets: [] };
+                }
+                return persistedState as any;
+            },
         }
     )
 );

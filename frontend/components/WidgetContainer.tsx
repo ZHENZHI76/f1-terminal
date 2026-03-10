@@ -255,7 +255,10 @@ export default function WidgetContainer({ widget }: { widget: Widget }) {
             if (widget.type === 'INSIGHT') {
                 setData({ reasoning: json.reasoning, report: json.report });
             } else {
-                setData(json.data);
+                // Robust response parsing: different endpoints use different keys
+                // Priority: json.data → json.events → entire json (for structured responses)
+                const payload = json.data ?? json.events ?? json;
+                setData(payload);
             }
 
         } catch (err: any) {
